@@ -35,3 +35,5 @@ backend-*.tar
 npm-debug.log
 /assets/node_modules/
 
+/assets/test/
+lib/backend_web/controllers/page_html/index.html.heex
