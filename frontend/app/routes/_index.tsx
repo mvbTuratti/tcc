@@ -9,11 +9,18 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Home" },
   ];
 }
-
-export async function loader({ params }: any) {
-  // let userLang = navigator.language || "pt-br";
-  // return redirect(`/${userLang}/home`);
+export async function clientLoader({
+  params,
+}: Route.ClientLoaderArgs) {
+  // let data = await fetch(`/some/api/stuff/${params.id}`);
+  // return data;
+  let userLang = navigator.language || "pt-br";
+  return redirect(`/${userLang}/home`);
 }
+// export async function loader({ params }: any) {
+//   // let userLang = navigator.language || "pt-br";
+//   // return redirect(`/${userLang}/home`);
+// }
 
 export default function Home() {
   return (

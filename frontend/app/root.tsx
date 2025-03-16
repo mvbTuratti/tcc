@@ -40,7 +40,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
             <div className="bg-red-300 w-56 flex-none">Test</div>
             <div>Test 2</div>
           </div> */}
-          <div className="flex-1 bg-green-500 flex overflow-y-hidden">
+          <div className="flex-1 flex overflow-y-hidden">
             <SideBar></SideBar>
             <div className="bg-green-200 flex-1 flex overflow-y-auto">
               {children}
@@ -62,6 +62,9 @@ export default function Application() {
   </App>);
 }
 
+export function HydrateFallback() {
+  return <h1>Loading...</h1>;
+}
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {
   let message = "Oops!";
