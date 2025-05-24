@@ -16,6 +16,7 @@ defmodule Backend.Application do
       {Finch, name: Backend.Finch},
       # Start a worker by calling: Backend.Worker.start_link(arg)
       # {Backend.Worker, arg},
+      {AshAuthentication.Supervisor, otp_app: :backend},
       # Start to serve requests, typically the last entry
       BackendWeb.Endpoint
     ]

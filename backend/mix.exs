@@ -33,6 +33,7 @@ defmodule Backend.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      {:ash_authentication_phoenix, "~> 2.0"},
       {:sourceror, "~> 1.7", only: [:dev, :test]},
       {:ash, "~> 3.0"},
       {:ash_phoenix, "~> 2.1.19"},
@@ -67,6 +68,8 @@ defmodule Backend.MixProject do
       {:ash_json_api, "~> 1.0"},
       {:open_api_spex, "~> 3.21"},
       {:redoc_ui_plug, "~> 0.2.1"},
+      {:ash_authentication, "~> 4.0"},
+      {:picosat_elixir, "~> 0.2"}
     ]
   end
 
@@ -88,7 +91,8 @@ defmodule Backend.MixProject do
         "tailwind backend --minify",
         "esbuild backend --minify",
         "phx.digest"
-      ]
+      ],
+      "phx.routes": ["phx.routes", "ash_authentication.phoenix.routes"]
     ]
   end
 end

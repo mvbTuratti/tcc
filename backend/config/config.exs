@@ -42,10 +42,19 @@ config :backend,
   ecto_repos: [Backend.Repo],
   generators: [timestamp_type: :utc_datetime]
 
-config :backend, ash_domains: [Backend.Class]
+config :backend, ash_domains: [Backend.Class, Backend.Accounts]
+
+config :backend, :ash_authentication,
+  identity_resource: Backend.Accounts.UserIdentity
+
 config :mime,
-    extensions: %{"json" => "application/vnd.api+json"},
-    types: %{"application/vnd.api+json" => ["json"]}
+  extensions: %{"json" => "application/vnd.api+json"},
+  types: %{"application/vnd.api+json" => ["json"]}
+
+config :backend,
+  google_client_id: System.fetch_env!("GOOGLE_CLIENT_ID"),
+  google_client_secret: System.fetch_env!("GOOGLE_CLIENT_SECRET"),
+  google_redirect_uri: System.fetch_env!("GOOGLE_REDIRECT_URI")
 
 # Configures the endpoint
 config :backend, BackendWeb.Endpoint,
