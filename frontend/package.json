@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "react-router build",
+    "build": "react-router build && mv build/client/assets/* ../backend/assets/test/ && mv build/client/index.html ../backend/lib/backend_web/controllers/page_html/index.html.heex && cp -r ../backend/assets/test/ ../backend/priv/static/assets/",
     "dev": "react-router dev",
     "start": "react-router-serve ./build/server/index.js",
     "typecheck": "react-router typegen && tsc"
