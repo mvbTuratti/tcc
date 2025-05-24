@@ -71,4 +71,12 @@ defmodule Backend.Class.ClassRoom do
     end
   end
 
+  relationships do
+    has_many :enrollments, Backend.Class.Enrollment do
+      destination_attribute :classroom_id
+    end
+    has_many :classroom_owners, Backend.Class.ClassRoomOwner do
+      destination_attribute :classroom_id
+    end
+  end
 end
