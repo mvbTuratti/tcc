@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   build: {
     cssMinify: true,
-    ssr: true,
+    ssr: false,
   },
   ssr: {
     noExternal: ["styled-components"]

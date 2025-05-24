@@ -74,7 +74,7 @@ const SideBar = () => {
   ];
 
   return (
-    <div className="w-[256px] flex-none overflow-y-auto flex-col flex justify-between">
+    <div className="w-[12vw] flex-none overflow-y-auto flex-col flex justify-between">
       <Menu
         mode="inline"
         defaultSelectedKeys={['231']}
