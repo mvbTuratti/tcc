@@ -29,7 +29,7 @@ const ClassroomStudents: React.FC<ClassroomStudentsProps> = ({ students, setStud
     inviteForm.validateFields().then(values => {
       const newStudent: Student = {
         id: Date.now(),
-        name: "Pendente", // Nome fixo para alunos convidados
+        name: "Pendente",
         email: values.email,
         status: "pending"
       };

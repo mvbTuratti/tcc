@@ -16,13 +16,12 @@ import EditEventModal from './calendar/EditEventModal';
 
 const { useForm } = Form;
 
-// Tipos de dados
 interface EventItem {
   type: string;
   content: string;
-  startTime: string;  // Formato "HH:mm"
-  endTime: string;    // Formato "HH:mm"
-  classroom?: string; // Campo opcional para sala de aula
+  startTime: string;
+  endTime: string;
+  classroom?: string;
 }
 
 interface EditingEventData {
@@ -44,14 +43,13 @@ const CalendarPage: React.FC = () => {
   // Data selecionada para mostrar/editar eventos do dia
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
 
-  // Dados do evento que está sendo editado (se houver)
+  // Dados do evento que está sendo editado
   const [editingEvent, setEditingEvent] = useState<EditingEventData | null>(null);
 
   // Formulários do antd para adicionar e editar eventos
   const [formAdd] = useForm(); 
   const [formEdit] = useForm();
 
-  // Controle do modo do calendário (mês/ano) para evitar bug do dropdown
   const [mode, setMode] = useState<'month' | 'year'>('month');
 
   // --------------------- FUNÇÕES DE AJUDA ---------------------
@@ -235,7 +233,6 @@ const CalendarPage: React.FC = () => {
     formEdit.resetFields();
   };
 
-  // --------------------- RENDERIZAÇÃO ---------------------
   return (
     <div style={{ margin: '20px' }}>
       <div

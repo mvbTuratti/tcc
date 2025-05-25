@@ -1,7 +1,6 @@
 import React from 'react';
 import { Modal, Form, DatePicker, TimePicker, Select, Input, Button } from 'antd';
 import type { FormInstance } from 'antd/es/form';
-import type { Dayjs } from 'dayjs';
 
 const { Option } = Select;
 

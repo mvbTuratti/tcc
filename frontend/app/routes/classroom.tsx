@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Card, Tabs } from 'antd';
-import type { Post, Student, ClassDate } from './classroom/types'; 
-// ^ Podemos centralizar as interfaces em um arquivo `types.ts` dentro da pasta `classroom` ou simplesmente
-//   definir aqui mesmo. Para o exemplo, supomos que elas estejam em "types.ts".
+import type { Post, Student, ClassDate } from './classroom/types';
 
 import ClassroomPosts from './classroom/ClassroomPosts';
 import ClassroomStudents from './classroom/ClassroomStudents';
@@ -46,7 +44,6 @@ const Classroom: React.FC = () => {
     );
   };
 
-  // ---------- RENDERIZAÇÃO ----------
   return (
     <div className="p-8 w-[88vw]">
       <Card

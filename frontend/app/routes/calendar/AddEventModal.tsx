@@ -17,7 +17,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
   onCancel,
   onFinish,
 }) => {
-  // Quando o usuário clica em "Ok" no modal
   const handleOk = () => {
     form.validateFields().then((values) => {
       onFinish(values);
@@ -89,7 +88,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({
           <Checkbox>Habilitar recorrência</Checkbox>
         </Form.Item>
 
-        {/* Campos de recorrência aparecem somente se "recurrenceEnabled" estiver marcado */}
         <Form.Item
           shouldUpdate={(prevValues, currentValues) =>
             prevValues.recurrenceEnabled !== currentValues.recurrenceEnabled

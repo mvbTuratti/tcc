@@ -1,10 +1,7 @@
-// src/routes/calendar/Home.tsx
-
 import React from 'react';
 import { Row, Col, Card, Statistic, Button, List } from 'antd';
 
 const Home: React.FC = () => {
-  // Dados de exemplo — você pode substituir pelos reais vindo de API/contexto
   const stats = [
     { title: 'Total de Eventos', value: 42 },
     { title: 'Eventos Hoje',    value: 5  },
@@ -32,7 +29,6 @@ const Home: React.FC = () => {
       >
         <h2 style={{ marginBottom: 24 }}>Bem-vindo ao Dashboard</h2>
 
-        {/* 1) Cards de estatísticas */}
         <Row gutter={[16, 16]}>
           {stats.map((s) => (
             <Col xs={24} sm={12} md={6} key={s.title}>
@@ -43,9 +39,7 @@ const Home: React.FC = () => {
           ))}
         </Row>
 
-        {/* 2) Conteúdo principal em 2 colunas */}
         <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-          {/* 2.1) Lista de próximos eventos */}
           <Col xs={24} md={12}>
             <Card title="Próximos Eventos">
               <List
@@ -62,7 +56,6 @@ const Home: React.FC = () => {
             </Card>
           </Col>
 
-          {/* 2.2) Ações rápidas */}
           <Col xs={24} md={12}>
             <Card title="Ações Rápidas">
               <Button
