@@ -6,8 +6,8 @@ import {
   Scripts,
   ScrollRestoration,
 } from "react-router";
-import { App } from 'antd';
 import SideBar from './sidebar/sidebar'
+import { Spin, App, Card } from "antd";
 
 import type { Route } from "./+types/root";
 import "./app.css";
@@ -63,7 +63,32 @@ export default function Application() {
 }
 
 export function HydrateFallback() {
-  return <h1>Loading...</h1>;
+  return (
+    <div
+      style={{
+        width: "100vw",
+        height: "100vh",
+        backgroundColor: "#bbf7d0",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Card
+        style={{
+          background: "#F9FAFB",
+          padding: 24,
+          borderRadius: 8,
+          textAlign: "center",
+          width: 300,
+          boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+        }}
+      >
+        <Spin size="large" />
+        <div style={{ marginTop: 16, fontWeight: 500 }}>Carregando...</div>
+      </Card>
+    </div>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

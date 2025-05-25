@@ -14,7 +14,7 @@ export default function About() {
     <div className="p-8 w-[88vw]">
       <Card
         style={{
-          background: 'white',
+          background: "#F9FAFB",
           height: '93vh',
           padding: '20px',
           borderRadius: '8px',

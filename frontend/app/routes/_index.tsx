@@ -14,6 +14,7 @@ export async function clientLoader({
 }: Route.ClientLoaderArgs) {
   // let data = await fetch(`/some/api/stuff/${params.id}`);
   // return data;
+  await new Promise(resolve => setTimeout(resolve, 3000)); // 3 segundos
   let userLang = navigator.language || "pt-br";
   return redirect(`/${userLang}/home`);
 }

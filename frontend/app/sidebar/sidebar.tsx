@@ -1,38 +1,43 @@
+// frontend/app/sidebar/SideBar.tsx
 import React, { useState } from 'react';
 import { Menu } from 'antd';
-import { AppstoreOutlined, HomeOutlined, InfoCircleOutlined, CalendarOutlined } from '@ant-design/icons';
+import {
+  AppstoreOutlined,
+  HomeOutlined,
+  InfoCircleOutlined,
+  CalendarOutlined,
+  PlusCircleOutlined,
+} from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useNavigate } from "react-router"; // Certifique-se de que sua versão suporta esse hook
-
-type MenuItem = Required<MenuProps>['items'][number];
+import { useNavigate } from 'react-router';
+import CreateClassroomModal from '../components/CreateClassroomModal';
 
 const SideBar = () => {
-  // Chame o hook useNavigate no topo do componente
   const navigate = useNavigate();
-  const [stateOpenKeys, setStateOpenKeys] = useState(['2', '23']);
-
-  const onOpenChange: MenuProps['onOpenChange'] = (openKeys) => {
-    setStateOpenKeys(openKeys);
-  };
+  const [openKeys, setOpenKeys] = useState(['2', '23']);
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const handleMenuClick: MenuProps['onClick'] = (e) => {
-    if (e.key === '1') {
-      navigate("/pt-bt/home");
-    } 
-    if (e.key === '3') {
-        navigate("/calendar")
-    }
-    if (e.key === '4') {
-        navigate("/about")
-    }
-    console.log("here")
+   if (e.key === 'create-sala') {
+     setIsModalVisible(true);
+     return;
+   }
+    if (e.key === '1') navigate("/pt-bt/home");
+    if (e.key === '3') navigate("/calendar");
+    if (e.key === '4') navigate("/about");
   };
 
-  const items: MenuItem[] = [
+  const items: MenuProps['items'] = [
+
     {
       key: '1',
       icon: <HomeOutlined />,
-      label: 'Pagina Inicial',
+      label: 'Página Inicial',
+    },
+    {
+     key: 'create-sala',
+     icon: <PlusCircleOutlined />,
+     label: 'Criar Sala de Aula',
     },
     {
       key: '2',
@@ -60,30 +65,32 @@ const SideBar = () => {
       ],
     },
     {
-        key: '3',
-        icon: <CalendarOutlined />,
-        label: 'Calendário',
-  
-      },
+      key: '3',
+      icon: <CalendarOutlined />,
+      label: 'Calendário',
+    },
     {
       key: '4',
       icon: <InfoCircleOutlined />,
       label: 'Sobre',
-
-    },
+    }
   ];
 
   return (
     <div className="w-[12vw] flex-none overflow-y-auto flex-col flex justify-between">
       <Menu
         mode="inline"
-        defaultSelectedKeys={['231']}
-        openKeys={stateOpenKeys}
-        onOpenChange={onOpenChange}
+        openKeys={openKeys}
+        onOpenChange={setOpenKeys}
         onClick={handleMenuClick}
-        style={{ width: '100%', height: '100%' }}
         items={items}
+        style={{ width: '100%', height: '100%', background: "#F9FAFB"}}
       />
+     <CreateClassroomModal
+       visible={isModalVisible}
+       onClose={() => setIsModalVisible(false)}
+       onCreate={(data) => console.log('SideBar criou:', data)}
+     />
     </div>
   );
 };
