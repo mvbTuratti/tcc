@@ -51,8 +51,8 @@ const Classroom: React.FC = () => {
     <div className="p-8 w-[88vw]">
       <Card
         style={{
-          background: 'white',
-          height: '94vh',
+          background: '#F9FAFB',
+          height: '93vh',
           padding: '20px',
           borderRadius: '8px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
