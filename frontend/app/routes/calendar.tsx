@@ -240,7 +240,7 @@ const CalendarPage: React.FC = () => {
     <div style={{ margin: '20px' }}>
       <div
         style={{
-          background: 'white',
+          background: '#F9FAFB',
           padding: '20px',
           borderRadius: '8px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Menu } from 'antd';
-import { AppstoreOutlined, MailOutlined, SettingOutlined } from '@ant-design/icons';
+import { AppstoreOutlined, HomeOutlined, InfoCircleOutlined, CalendarOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from "react-router"; // Certifique-se de que sua versão suporta esse hook
 
@@ -31,7 +31,7 @@ const SideBar = () => {
   const items: MenuItem[] = [
     {
       key: '1',
-      icon: <MailOutlined />,
+      icon: <HomeOutlined />,
       label: 'Pagina Inicial',
     },
     {
@@ -61,13 +61,13 @@ const SideBar = () => {
     },
     {
         key: '3',
-        icon: <SettingOutlined />,
+        icon: <CalendarOutlined />,
         label: 'Calendário',
   
       },
     {
       key: '4',
-      icon: <SettingOutlined />,
+      icon: <InfoCircleOutlined />,
       label: 'Sobre',
 
     },
@@ -81,10 +81,9 @@ const SideBar = () => {
         openKeys={stateOpenKeys}
         onOpenChange={onOpenChange}
         onClick={handleMenuClick}
-        style={{ width: 256, height: '100%' }}
+        style={{ width: '100%', height: '100%' }}
         items={items}
       />
-      <div className="bg-green-100">Test2</div>
     </div>
   );
 };
