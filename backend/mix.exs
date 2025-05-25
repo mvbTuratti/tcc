@@ -35,7 +35,7 @@ defmodule Backend.MixProject do
     [
       {:ash_authentication_phoenix, "~> 2.0"},
       {:sourceror, "~> 1.7", only: [:dev, :test]},
-      {:ash, "~> 3.0"},
+      {:ash, "~> 3.4"},
       {:ash_phoenix, "~> 2.1.19"},
       {:ash_postgres, "~> 2.5.10"},
       {:igniter, "~> 0.5", only: [:dev, :test]},
@@ -65,7 +65,7 @@ defmodule Backend.MixProject do
       {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.1.1"},
       {:bandit, "~> 1.5"},
-      {:ash_json_api, "~> 1.0"},
+      {:ash_json_api, "~> 1.4"},
       {:open_api_spex, "~> 3.21"},
       {:redoc_ui_plug, "~> 0.2.1"},
       {:ash_authentication, "~> 4.0"},

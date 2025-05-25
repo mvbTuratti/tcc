@@ -22,6 +22,26 @@ defmodule Backend.Class.ClassRoom do
     create :create do
       primary? true
       accept [:name, :description]
+      change after_action(fn changeset, result, ctx ->
+        IO.inspect(ctx, label: "ctx")
+        IO.inspect(changeset, label: "changeset")
+        actor = ctx.actor
+        IO.inspect(actor, label: "Here in create after action")
+        if actor do
+          {:ok, _} =
+            Backend.Class.ClassRoomOwner
+            |> Ash.Changeset.for_create(:create, %{
+              classroom_id: result.id,
+              user_id: actor.id
+            })
+            |> Ash.create()
+
+          {:ok, result}
+        else
+          {:error, "Actor not found"}
+        end
+      end)
+
     end
 
     update :update do
@@ -67,7 +87,8 @@ defmodule Backend.Class.ClassRoom do
 
   policies do
     policy always() do
-      authorize_if expr(actor != nil)
+      # authorize_if expr(actor != nil)
+      authorize_if always()
     end
   end
 

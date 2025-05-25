@@ -1,5 +1,5 @@
 defmodule Backend.Accounts.UserChanges do
-  alias Backend.Accounts.UserIdentity
+  # alias Backend.Accounts.UserIdentity
   alias Ash.Changeset
 
   def create_identity_after_action(changeset, user, _context) do
@@ -20,13 +20,13 @@ defmodule Backend.Accounts.UserChanges do
     IO.inspect(identity_changeset, label: "🟡 Identity Changeset")
 
     case Ash.create(identity_changeset) do
-      {:ok, identity} ->
-        IO.puts("✅ Identity criada com sucesso!")
+      {:ok, _identity} ->
+        IO.puts("Identity criada com sucesso!")
         {:ok, user}
 
       {:error, error} ->
-        IO.puts("❌ ERRO AO INSERIR IDENTITY")
-        IO.inspect(error, label: "⛔ Error retornado pelo Ash.create/1")
+        IO.puts("ERRO AO INSERIR IDENTITY")
+        IO.inspect(error, label: "Error retornado pelo Ash.create/1")
         {:ok, user} # Evita que o erro impeça o fluxo de login (temporariamente)
     end
   end

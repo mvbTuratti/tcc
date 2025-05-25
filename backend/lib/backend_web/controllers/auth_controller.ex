@@ -1,7 +1,7 @@
 defmodule BackendWeb.AuthController do
   use BackendWeb, :controller
   use AshAuthentication.Phoenix.Controller
-  import Ash.Query
+  require Ash.Query
 
   def success(conn, activity, user, _token) do
     return_to = get_session(conn, :return_to) || ~p"/"
