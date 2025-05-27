@@ -34,8 +34,8 @@ defmodule BackendWeb.Router do
   pipeline :api_with_actor do
     plug :accepts, ["json"]
     plug :fetch_session
-    plug BackendWeb.AssignActorFromSession
-    plug :set_actor, :user
+    plug BackendWeb.Plugs.AssignActorFromSession
+    plug BackendWeb.Plugs.SetAshActor
   end
 
   # scope "/", BackendWeb do
@@ -66,8 +66,7 @@ defmodule BackendWeb.Router do
     forward "/v1/redoc",
             Redoc.Plug.RedocUI,
             spec_url: "/api/v1/open_api"
-
-    forward "/v1", BackendkWeb.JsonApiRouter
+    forward "/v1", BackendWeb.JsonApiRouter
   end
 
   scope "/", BackendWeb do

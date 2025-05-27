@@ -7,8 +7,11 @@ defmodule Backend.Class do
     # error_handler BackendWeb.JsonApiErrorHandler
     routes do
       base_route "/classroom", Backend.Class.ClassRoom do
-        get(:read)
         index :read
+        get :by_id
+        index :list_owned, route: "/owned"
+        index :list_enrolled, route: "/enrolled"
+
         post(:create, upsert?: true)
         patch(:update, query_params: [:version])
         delete(:destroy)
@@ -51,7 +54,6 @@ defmodule Backend.Class do
   resources do
     resource Backend.Class.ClassRoom do
       define :create_class, action: :create, args: [:name, :description]
-      define :read_classes, action: :read
       define :update_class, action: :update
       define :get_class, args: [:id], action: :by_id
       define :delete_class, action: :destroy

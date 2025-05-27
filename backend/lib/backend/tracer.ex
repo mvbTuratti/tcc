@@ -20,12 +20,21 @@ defmodule Backend.Tracer do
   end
 
   @impl true
-  def set_span_context(_context) do
+  def set_span_context(context) do
+    IO.inspect(context, label: "Set span context")
     :ok
   end
 
   @impl true
-  def set_metadata(_metadata, _value) do
+  def set_metadata(metadata, value) do
+    IO.inspect(metadata, label: "Set metadata METADATA")
+    IO.inspect(value, label: "Set metadata VALUE")
+    :ok
+  end
+
+  @impl true
+  def set_error(meta) do
+    IO.inspect(meta, label: "ERROR")
     :ok
   end
 end

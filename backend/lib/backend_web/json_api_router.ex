@@ -1,4 +1,4 @@
-defmodule BackendkWeb.JsonApiRouter do
+defmodule BackendWeb.JsonApiRouter do
   use AshJsonApi.Router,
     domains: [Module.concat(["Backend.Class"])],
     open_api: "/open_api"

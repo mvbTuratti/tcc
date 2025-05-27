@@ -92,6 +92,7 @@ defmodule Backend.Accounts.User do
   relationships do
     has_many :posts, Backend.Class.Post, destination_attribute: :author_id
     has_many :classroom_owners, Backend.Class.ClassRoomOwner
+    has_many :student, Backend.Class.Student, destination_attribute: :user_id
   end
 
 end
