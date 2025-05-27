@@ -7,6 +7,9 @@ defmodule Backend.Class.Student do
   postgres do
     table "students"
     repo Backend.Repo
+    references do
+      reference :user, on_delete: :delete
+    end
   end
 
   json_api do

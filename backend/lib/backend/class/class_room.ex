@@ -11,6 +11,7 @@ defmodule Backend.Class.ClassRoom do
   postgres do
     table "classrooms"
     repo Backend.Repo
+
   end
 
   json_api do
@@ -152,6 +153,7 @@ defmodule Backend.Class.ClassRoom do
   relationships do
     has_many :enrollments, Backend.Class.Enrollment do
       destination_attribute :classroom_id
+      public? true
     end
     has_many :classroom_owners, Backend.Class.ClassRoomOwner do
       destination_attribute :classroom_id

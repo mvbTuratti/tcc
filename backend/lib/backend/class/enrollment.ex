@@ -7,6 +7,10 @@ defmodule Backend.Class.Enrollment do
   postgres do
     table "enrollments"
     repo Backend.Repo
+    references do
+      reference :classroom, on_delete: :delete
+      reference :student, on_delete: :delete
+    end
   end
 
   json_api do

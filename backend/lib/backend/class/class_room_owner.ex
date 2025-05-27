@@ -6,6 +6,10 @@ defmodule Backend.Class.ClassRoomOwner do
   postgres do
     table "classroom_owners"
     repo Backend.Repo
+    references do
+      reference :classroom, on_delete: :delete
+      reference :user, on_delete: :delete
+    end
   end
 
   attributes do

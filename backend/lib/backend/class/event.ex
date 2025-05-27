@@ -7,6 +7,9 @@ defmodule Backend.Class.Event do
   postgres do
     table "events"
     repo Backend.Repo
+    references do
+      reference :classroom, on_delete: :delete
+    end
   end
 
   json_api do

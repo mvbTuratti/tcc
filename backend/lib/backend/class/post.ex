@@ -7,6 +7,11 @@ defmodule Backend.Class.Post do
   postgres do
     table "posts"
     repo Backend.Repo
+
+    references do
+      reference :classroom, on_delete: :delete
+      reference :author, on_delete: :delete
+    end
   end
 
   json_api do
