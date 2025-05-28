@@ -15,9 +15,14 @@ defmodule Backend.Accounts.User do
     uuid_primary_key :id do
       public? true
     end
-    attribute :email, :string, allow_nil?: false
-    attribute :name, :string, allow_nil?: false
-    attribute :picture, :string, allow_nil?: true
+    attribute :email, :ci_string do
+      allow_nil? false
+
+      constraints max_length: 256,
+        allow_empty?: false
+    end
+    attribute :name, :string, allow_nil?: false, public?: true
+    attribute :picture, :string, allow_nil?: true, public?: true
   end
   identities do
     identity :unique_email, [:email]
@@ -91,6 +96,7 @@ defmodule Backend.Accounts.User do
 
   relationships do
     has_many :posts, Backend.Class.Post, destination_attribute: :author_id
+    has_many :responses, Backend.Class.Response, destination_attribute: :author_id
     has_many :classroom_owners, Backend.Class.ClassRoomOwner
     has_many :student, Backend.Class.Student, destination_attribute: :user_id
   end

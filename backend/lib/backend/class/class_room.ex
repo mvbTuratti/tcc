@@ -1,5 +1,4 @@
 defmodule Backend.Class.ClassRoom do
-  # import Ash.Resource.Dsl
   use Ash.Resource,
     domain: Backend.Class,
     data_layer: AshPostgres.DataLayer,

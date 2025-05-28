@@ -2,7 +2,10 @@ defmodule Backend.Class.Student do
   use Ash.Resource,
     domain: Backend.Class,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshJsonApi.Resource]
+    extensions: [AshJsonApi.Resource],
+    authorizers: [
+      Ash.Policy.Authorizer
+    ]
 
   postgres do
     table "students"
@@ -24,11 +27,22 @@ defmodule Backend.Class.Student do
   end
 
   attributes do
-    uuid_primary_key :id
-    attribute :email, :string, allow_nil?: false
+    uuid_primary_key :id do
+      public? true
+    end
+    attribute :version, :integer, allow_nil?: false, default: 1
+    attribute :email, :ci_string do
+      allow_nil? false
+      public? true
+      constraints max_length: 256,
+                allow_empty?: false
+    end
 
     create_timestamp :inserted_at
     update_timestamp :updated_at
+    changes do
+      change optimistic_lock(:version), on: [:create, :destroy, :update]
+    end
   end
 
   relationships do
@@ -36,6 +50,7 @@ defmodule Backend.Class.Student do
     belongs_to :user, Backend.Accounts.User do
       attribute_writable? true
       allow_nil? true
+      public? true
     end
   end
 

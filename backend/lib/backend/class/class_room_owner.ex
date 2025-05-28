@@ -1,7 +1,11 @@
 defmodule Backend.Class.ClassRoomOwner do
   use Ash.Resource,
     domain: Backend.Class,
-    data_layer: AshPostgres.DataLayer
+    data_layer: AshPostgres.DataLayer,
+    extensions: [AshJsonApi.Resource]
+    # authorizers: [
+    #   Ash.Policy.Authorizer
+    # ]
 
   postgres do
     table "classroom_owners"
@@ -13,7 +17,9 @@ defmodule Backend.Class.ClassRoomOwner do
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key :id do
+      public? true
+    end
     create_timestamp :inserted_at
     update_timestamp :updated_at
   end

@@ -34,6 +34,14 @@ defmodule Backend.Class do
       end
 
       base_route "/post", Backend.Class.Post do
+        index :read
+        get :by_id
+        post(:create, upsert?: true)
+        patch(:update, query_params: [:version])
+        delete(:destroy)
+      end
+
+      base_route "/response", Backend.Class.Response do
         get(:read)
         index :read
         post(:create)
@@ -80,10 +88,17 @@ defmodule Backend.Class do
     end
 
     resource Backend.Class.Post do
-      define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
-      define :read_posts, action: :read
-      define :update_post, action: :update
-      define :delete_post, action: :destroy
+      # define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
+      # define :read_posts, action: :read
+      # define :update_post, action: :update
+      # define :delete_post, action: :destroy
+    end
+
+    resource Backend.Class.Response do
+      # define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
+      # define :read_posts, action: :read
+      # define :update_post, action: :update
+      # define :delete_post, action: :destroy
     end
 
     resource Backend.Class.Event do

@@ -2,7 +2,10 @@ defmodule Backend.Class.Event do
   use Ash.Resource,
     domain: Backend.Class,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshJsonApi.Resource]
+    extensions: [AshJsonApi.Resource],
+    authorizers: [
+      Ash.Policy.Authorizer
+    ]
 
   postgres do
     table "events"
@@ -25,17 +28,23 @@ defmodule Backend.Class.Event do
     update :update do
       accept [:event_date, :start_time, :end_time, :event_type, :description, :is_recurring, :recurrence_interval]
     end
+
+    changes do
+      # change optimistic_lock(:version), on: [:create, :destroy, :update]
+      change optimistic_lock(:version), on: [:destroy, :update]
+    end
   end
 
   attributes do
     uuid_primary_key :id
-    attribute :event_date, :date, allow_nil?: false
-    attribute :start_time, :time, allow_nil?: false
-    attribute :end_time, :time, allow_nil?: false
-    attribute :event_type, Backend.Types.EventType, allow_nil?: false
-    attribute :description, :string
-    attribute :is_recurring, :boolean, default: false
-    attribute :recurrence_interval, Backend.Types.RecurrenceInterval
+    attribute :version, :integer, allow_nil?: false, default: 1
+    attribute :event_date, :utc_datetime, allow_nil?: false, public?: true
+    attribute :start_time, :time, allow_nil?: false, public?: true
+    attribute :end_time, :time, allow_nil?: false, public?: true
+    attribute :event_type, Backend.Types.EventType, allow_nil?: false, public?: true
+    attribute :description, :string, allow_nil?: true, public?: true
+    attribute :is_recurring, :boolean, default: false, allow_nil?: true, public?: true
+    attribute :recurrence_interval, Backend.Types.RecurrenceInterval, allow_nil?: true, public?: true
 
     create_timestamp :inserted_at
     update_timestamp :updated_at
