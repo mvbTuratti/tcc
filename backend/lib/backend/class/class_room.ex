@@ -81,7 +81,7 @@ defmodule Backend.Class.ClassRoom do
     # end
 
     update :update do
-      accept [:name, :description]
+      accept [:name, :description, :is_external]
     end
 
     changes do
