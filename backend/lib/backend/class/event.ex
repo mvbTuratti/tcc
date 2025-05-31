@@ -41,6 +41,7 @@ defmodule Backend.Class.Event do
     attribute :event_date, :utc_datetime, allow_nil?: false, public?: true
     attribute :start_time, :time, allow_nil?: false, public?: true
     attribute :end_time, :time, allow_nil?: false, public?: true
+    attribute :url, :string, allow_nil?: false, public?: true
     attribute :event_type, Backend.Types.EventType, allow_nil?: false, public?: true
     attribute :description, :string, allow_nil?: true, public?: true
     attribute :is_recurring, :boolean, default: false, allow_nil?: true, public?: true
