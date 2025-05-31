@@ -10,6 +10,7 @@ defmodule Backend.Class.ClassRoom do
   postgres do
     table "classrooms"
     repo Backend.Repo
+
   end
 
   json_api do
@@ -17,21 +18,59 @@ defmodule Backend.Class.ClassRoom do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:destroy]
 
-    create :create do
-      primary? true
-      accept [:name, :description]
+    read :read do
+      primary?(true)
+      prepare build(sort: {:inserted_at, :desc})
+      pagination keyset?: true, offset?: true, required?: false, countable: true
     end
 
-    update :update do
-      accept [:name, :description]
+    read :list_owned do
+      prepare build(sort: {:inserted_at, :desc})
+      pagination keyset?: true, offset?: true, required?: false, countable: true
+    end
+
+    read :list_enrolled do
+      prepare build(sort: {:inserted_at, :desc})
+      pagination keyset?: true, offset?: true, required?: false, countable: true
     end
 
     read :by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
       filter expr(id == ^arg(:id))
+    end
+
+    read :keyset do
+      prepare(build(sort: {:inserted_at, :desc}))
+      pagination(keyset?: true)
+    end
+
+    create :create do
+      primary? true
+      accept [:name, :description]
+      change after_action(fn changeset, result, ctx ->
+        actor = ctx.actor
+        if actor do
+          {:ok, _} =
+            Backend.Class.ClassRoomOwner
+            |> Ash.Changeset.for_create(:create, %{
+              classroom_id: result.id,
+              user_id: actor.id
+            })
+            |> Ash.create()
+
+          {:ok, result}
+        else
+          {:error, "Actor not found"}
+        end
+      end)
+
+    end
+
+    update :update do
+      accept [:name, :description]
     end
 
     changes do
@@ -66,9 +105,58 @@ defmodule Backend.Class.ClassRoom do
   end
 
   policies do
-    policy always() do
-      authorize_if expr(actor != nil)
+
+    policy action(:read) do
+      authorize_if expr(
+        exists(classroom_owners, user_id == ^actor(:id)) or
+        exists(enrollments, exists(student, user_id == ^actor(:id)))
+      )
     end
+    policy action(:by_id) do
+      authorize_if expr(
+        exists(classroom_owners, user_id == ^actor(:id)) or
+        exists(enrollments, exists(student, user_id == ^actor(:id)))
+      )
+    end
+    policy action(:keyset) do
+      authorize_if expr(
+        exists(classroom_owners, user_id == ^actor(:id)) or
+        exists(enrollments, exists(student, user_id == ^actor(:id)))
+      )
+    end
+
+    policy action(:list_owned) do
+      authorize_if expr(
+        exists(classroom_owners, user_id == ^actor(:id)))
+    end
+
+    policy action(:list_enrolled) do
+      authorize_if expr(exists(enrollments, exists(student, user_id == ^actor(:id))))
+    end
+
+    policy action_type(:create) do
+      authorize_if always()
+    end
+
+    # Example: Only owners can update or delete
+    policy action_type(:update) do
+      authorize_if expr(exists(classroom_owners, user_id == ^actor(:id)))
+    end
+
+    policy action_type(:destroy) do
+      authorize_if expr(exists(classroom_owners, user_id == ^actor(:id)))
+    end
+
   end
 
+  relationships do
+    has_many :enrollments, Backend.Class.Enrollment do
+      destination_attribute :classroom_id
+      public? true
+    end
+    has_many :classroom_owners, Backend.Class.ClassRoomOwner do
+      destination_attribute :classroom_id
+      public? true
+    end
+  end
 end

@@ -12,13 +12,21 @@ defmodule Backend.Accounts.User do
   end
 
   attributes do
-    uuid_primary_key :id
-    attribute :email, :ci_string, allow_nil?: false
-    attribute :name, :string, allow_nil?: false
-    attribute :picture, :string, allow_nil?: true
+    uuid_primary_key :id do
+      public? true
+    end
+    attribute :email, :ci_string do
+      allow_nil? false
+
+      constraints max_length: 256,
+        allow_empty?: false
+    end
+    attribute :name, :string, allow_nil?: false, public?: true
+    attribute :picture, :string, allow_nil?: true, public?: true
   end
   identities do
     identity :unique_email, [:email]
+    identity :id_identity, [:id]
   end
 
   authentication do
@@ -30,6 +38,7 @@ defmodule Backend.Accounts.User do
       signing_secret fn _, _ ->
         {:ok, Application.fetch_env!(:backend, :token_signing_secret)}
       end
+      subject_name :id
     end
     strategies do
       google do
@@ -41,7 +50,12 @@ defmodule Backend.Accounts.User do
       end
     end
   end
+
   actions do
+    defaults [:read]
+    read :reads do
+      argument :id, :string
+    end
     create :register_with_google do
       argument :user_info, :map, allow_nil?: false
       argument :oauth_tokens, :map, allow_nil?: false
@@ -61,6 +75,11 @@ defmodule Backend.Accounts.User do
         changeset
       end
     end
+
+    read :by_id do
+      argument :id, :uuid, allow_nil?: false
+      filter expr(id == ^arg(:id))
+    end
   end
 
   # You can customize this if you wish, but this is a safe default that
@@ -71,8 +90,15 @@ defmodule Backend.Accounts.User do
     end
 
     policy always() do
-      forbid_if always()
+      authorize_if always()
     end
+  end
+
+  relationships do
+    has_many :posts, Backend.Class.Post, destination_attribute: :author_id
+    has_many :responses, Backend.Class.Response, destination_attribute: :author_id
+    has_many :classroom_owners, Backend.Class.ClassRoomOwner
+    has_many :student, Backend.Class.Student, destination_attribute: :user_id
   end
 
 end
