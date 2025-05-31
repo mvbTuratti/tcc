@@ -1,43 +1,76 @@
-// frontend/app/sidebar/SideBar.tsx
 import React, { useState } from 'react';
-import { Menu } from 'antd';
+import { Menu, Row, Button } from 'antd';
 import {
   AppstoreOutlined,
   HomeOutlined,
   InfoCircleOutlined,
   CalendarOutlined,
   PlusCircleOutlined,
+  UnorderedListOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router';
 import CreateClassroomModal from '../components/CreateClassroomModal';
+import ParticipatingClassroomsModal from '../components/ParticipatingClassroomsModal';
+import type { ClassroomSummary } from '../routes/Home';
 
-const SideBar = () => {
+const SideBar: React.FC = () => {
   const navigate = useNavigate();
-  const [openKeys, setOpenKeys] = useState(['2', '23']);
-  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>(['2', '23']);
+  const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
+  const [isParticipatingModalVisible, setIsParticipatingModalVisible] = useState(false);
 
-  const handleMenuClick: MenuProps['onClick'] = (e) => {
-   if (e.key === 'create-sala') {
-     setIsModalVisible(true);
-     return;
-   }
-    if (e.key === '1') navigate("/pt-bt/home");
-    if (e.key === '3') navigate("/calendar");
-    if (e.key === '4') navigate("/about");
+  // dados mockados para exemplo
+  const professorRooms: ClassroomSummary[] = [
+    { name: 'Sala de Matemática', instructor: 'Prof. João' },
+    { name: 'Sala de Física', instructor: 'Prof. Ana' },
+    { name: 'Sala de Química', instructor: 'Prof. Carlos' },
+    { name: 'Sala de História', instructor: 'Prof. Maria' },
+  ];
+  const studentRooms: ClassroomSummary[] = [
+    { name: 'Sala de Biologia', instructor: 'Prof. Pedro' },
+    { name: 'Sala de Geografia', instructor: 'Prof. Luiza' },
+    { name: 'Sala de Inglês', instructor: 'Prof. Carla' },
+    { name: 'Sala de Espanhol', instructor: 'Prof. Marcos' },
+  ];
+
+  const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    switch (key) {
+      case 'create-sala':
+        setIsCreateModalVisible(true);
+        break;
+      case 'list-salas':
+        setIsParticipatingModalVisible(true);
+        break;
+      case '1':
+        navigate('/pt-bt/home');
+        break;
+      case '3':
+        navigate('/calendar');
+        break;
+      case '4':
+        navigate('/about');
+        break;
+      default:
+        break;
+    }
   };
 
   const items: MenuProps['items'] = [
-
     {
       key: '1',
       icon: <HomeOutlined />,
       label: 'Página Inicial',
     },
     {
-     key: 'create-sala',
-     icon: <PlusCircleOutlined />,
-     label: 'Criar Sala de Aula',
+      key: 'create-sala',
+      icon: <PlusCircleOutlined />,
+      label: 'Criar Sala',
+    },
+    {
+      key: 'list-salas',
+      icon: <UnorderedListOutlined />,
+      label: 'Listar Salas',
     },
     {
       key: '2',
@@ -73,7 +106,7 @@ const SideBar = () => {
       key: '4',
       icon: <InfoCircleOutlined />,
       label: 'Sobre',
-    }
+    },
   ];
 
   return (
@@ -83,14 +116,22 @@ const SideBar = () => {
         openKeys={openKeys}
         onOpenChange={setOpenKeys}
         onClick={handleMenuClick}
+        style={{ width: '100%', height: '100%' }}
         items={items}
-        style={{ width: '100%', height: '100%', background: "#F9FAFB"}}
       />
-     <CreateClassroomModal
-       visible={isModalVisible}
-       onClose={() => setIsModalVisible(false)}
-       onCreate={(data) => console.log('SideBar criou:', data)}
-     />
+
+      <CreateClassroomModal
+        visible={isCreateModalVisible}
+        onClose={() => setIsCreateModalVisible(false)}
+        onCreate={(data) => console.log('Sala criada pelo Sidebar:', data)}
+      />
+
+      <ParticipatingClassroomsModal
+        visible={isParticipatingModalVisible}
+        onClose={() => setIsParticipatingModalVisible(false)}
+        professorRooms={professorRooms}
+        studentRooms={studentRooms}
+      />
     </div>
   );
 };
