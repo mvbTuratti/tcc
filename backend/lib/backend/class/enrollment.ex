@@ -24,6 +24,11 @@ defmodule Backend.Class.Enrollment do
 
   actions do
     defaults [:read, :destroy]
+    read :me do
+      argument :classroom_id, :uuid, allow_nil?: false
+      get? true
+      filter expr(classroom_id == ^arg(:classroom_id))
+    end
     create :create do
       argument :student_email, :ci_string, allow_nil?: false
       accept [:status, :is_delinquent, :classroom_id]
@@ -40,8 +45,6 @@ defmodule Backend.Class.Enrollment do
         )
       end
     end
-
-
     update :update do
       accept [:status, :is_delinquent]
     end
@@ -80,10 +83,15 @@ defmodule Backend.Class.Enrollment do
       authorize_if Backend.Class.Checks.IsClassroomOwner
     end
 
-    policy action_type(:read) do
+    policy action(:read) do
       authorize_if expr(
         student.user_id == ^actor(:id) or
         exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
+      )
+    end
+    policy action(:me) do
+      authorize_if expr(
+        student.user_id == ^actor(:id)
       )
     end
     policy action_type(:destroy) do

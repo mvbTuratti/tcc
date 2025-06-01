@@ -26,7 +26,7 @@ defmodule Backend.Class do
       # end
 
       base_route "/enrollment", Backend.Class.Enrollment do
-        get(:read)
+        get :me, route: "/me"
         index :read
         post(:create)
         patch(:update)

@@ -6,6 +6,7 @@ defmodule Backend.Class.Student do
     authorizers: [
       Ash.Policy.Authorizer
     ]
+  require Ash.Query
 
   postgres do
     table "students"
@@ -26,6 +27,17 @@ defmodule Backend.Class.Student do
       upsert? true
       upsert_identity :unique_email
       accept [:email]
+      change fn changeset, _context ->
+        student_email = Ash.Changeset.get_attribute(changeset, :email)
+        case Backend.Accounts.User
+             |> Ash.Query.filter(expr(email == ^student_email))
+             |> Ash.read_one() do
+          {:ok, user} when not is_nil(user) ->
+            Ash.Changeset.change_attribute(changeset, :user_id, user.id)
+          _ ->
+            changeset
+        end
+      end
     end
     update :update do
       accept [:email]

@@ -59,26 +59,6 @@ defmodule Backend.Class.ClassRoom do
         end
       end
     end
-    # create :create do
-    #   primary? true
-    #   accept [:name, :description, :is_external]
-    #   change after_action(fn changeset, result, ctx ->
-    #     actor = ctx.actor
-    #     if actor do
-    #       {:ok, _} =
-    #         Backend.Class.ClassRoomOwner
-    #         |> Ash.Changeset.for_create(:create, %{
-    #           classroom_id: result.id,
-    #           user_id: actor.id
-    #         })
-    #         |> Ash.create()
-
-    #       {:ok, result}
-    #     else
-    #       {:error, "Actor not found"}
-    #     end
-    #   end)
-    # end
 
     update :update do
       accept [:name, :description, :is_external]
@@ -90,7 +70,7 @@ defmodule Backend.Class.ClassRoom do
   end
 
   attributes do
-    uuid_primary_key :id
+    uuid_primary_key :id, public?: true
     attribute :version, :integer, allow_nil?: false, default: 1
 
     attribute :name, :string do
