@@ -12,16 +12,6 @@
     },
     {
       "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "content",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
       "default": "fragment(\"(now() AT TIME ZONE 'utc')\")",
       "generated?": false,
       "primary_key?": false,
@@ -58,8 +48,8 @@
           "global": null,
           "strategy": null
         },
-        "name": "posts_classroom_id_fkey",
-        "on_delete": null,
+        "name": "classroom_owners_classroom_id_fkey",
+        "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
@@ -87,15 +77,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "posts_author_id_fkey",
-        "on_delete": null,
+        "name": "classroom_owners_user_id_fkey",
+        "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
         "table": "users"
       },
       "size": null,
-      "source": "author_id",
+      "source": "user_id",
       "type": "uuid"
     }
   ],
@@ -104,7 +94,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "221CC41088E9799F5153E70CC7C9048C10FF82604F9F4E43ABBB9877B368144A",
+  "hash": "294D42C0C9FA134D8819A34CA1E672F979C300C92B3A7783C258BEAC9D0EC61E",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -113,5 +103,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "posts"
+  "table": "classroom_owners"
 }

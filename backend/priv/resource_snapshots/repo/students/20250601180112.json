@@ -27,78 +27,8 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "event_date",
-      "type": "utc_datetime"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "start_time",
-      "type": "time"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "end_time",
-      "type": "time"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "url",
-      "type": "text"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "event_type",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "description",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "false",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "is_recurring",
-      "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "recurrence_interval",
-      "type": "text"
+      "source": "email",
+      "type": "citext"
     },
     {
       "allow_nil?": false,
@@ -138,15 +68,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "events_classroom_id_fkey",
+        "name": "students_user_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "classrooms"
+        "table": "users"
       },
       "size": null,
-      "source": "classroom_id",
+      "source": "user_id",
       "type": "uuid"
     }
   ],
@@ -155,8 +85,23 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "90CB490401901D0D998CE54399F3EA65C49CA97F3FE64A2351762F9186B83089",
-  "identities": [],
+  "hash": "BA8551769AE93610E52DFA146EA5D2135A0B18772FF8F84DC53EE8B989F69E9E",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "students_unique_email_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "email"
+        }
+      ],
+      "name": "unique_email",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -164,5 +109,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "events"
+  "table": "students"
 }

@@ -20,9 +20,35 @@ defmodule Backend.Class.Student do
   end
 
   actions do
-    defaults [:read, :update, :destroy]
+    defaults [:destroy]
     create :create do
+      primary?(true)
+      upsert? true
+      upsert_identity :unique_email
       accept [:email]
+    end
+    update :update do
+      accept [:email]
+    end
+    read :read do
+      primary?(true)
+      prepare build(sort: {:inserted_at, :desc})
+      pagination keyset?: true, offset?: true, required?: false, countable: true
+    end
+    update :claim_for_user do
+      primary?(true)
+      accept [:user_id]
+    end
+
+    read :by_id do
+      argument :id, :uuid, allow_nil?: false
+      get? true
+      filter expr(id == ^arg(:id))
+    end
+
+    read :keyset do
+      prepare(build(sort: {:inserted_at, :desc}))
+      pagination(keyset?: true)
     end
   end
 
@@ -41,8 +67,11 @@ defmodule Backend.Class.Student do
     create_timestamp :inserted_at
     update_timestamp :updated_at
     changes do
-      change optimistic_lock(:version), on: [:create, :destroy, :update]
+      change optimistic_lock(:version), on: [:destroy, :update]
     end
+  end
+  identities do
+    identity :unique_email, [:email]
   end
 
   relationships do
@@ -51,6 +80,28 @@ defmodule Backend.Class.Student do
       attribute_writable? true
       allow_nil? true
       public? true
+    end
+  end
+  policies do
+    policy action(:update) do
+      authorize_if expr(exists(enrollment, exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))))
+    end
+    policy action(:claim_for_user) do
+      authorize_if always()
+    end
+    policy action_type(:destroy) do
+      authorize_if expr(exists(enrollment, exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))))
+    end
+    policy action_type(:create) do
+      # authorize_if expr(exists(enrollment, exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))))
+      authorize_if always()
+    end
+    policy action_type(:read) do
+      authorize_if expr(
+        exists(user_id == ^actor(:id)) or
+        exists(enrollment, exists(classroom, exists(classroom_owners, user_id == ^actor(:id))))
+      )
+      # authorize_if always()
     end
   end
 

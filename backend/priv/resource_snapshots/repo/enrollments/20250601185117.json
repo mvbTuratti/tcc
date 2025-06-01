@@ -12,13 +12,33 @@
     },
     {
       "allow_nil?": false,
+      "default": "1",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "version",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "email",
+      "source": "status",
       "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "false",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "is_delinquent",
+      "type": "boolean"
     },
     {
       "allow_nil?": false,
@@ -58,15 +78,44 @@
           "global": null,
           "strategy": null
         },
-        "name": "students_user_id_fkey",
+        "name": "enrollments_student_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "students"
       },
       "size": null,
-      "source": "user_id",
+      "source": "student_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "enrollments_classroom_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "classrooms"
+      },
+      "size": null,
+      "source": "classroom_id",
       "type": "uuid"
     }
   ],
@@ -75,8 +124,27 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "7AC4DDA7D0DD54EE631335160496D59146BBCC0D0F3155E5AF945BC25BA58D28",
-  "identities": [],
+  "hash": "FE53240237C61A093C351D97C4DB9A8277F6C8ED4FA6F128D787E566E6EA55AE",
+  "identities": [
+    {
+      "all_tenants?": false,
+      "base_filter": null,
+      "index_name": "enrollments_unique_student_classroom_index",
+      "keys": [
+        {
+          "type": "atom",
+          "value": "student_id"
+        },
+        {
+          "type": "atom",
+          "value": "classroom_id"
+        }
+      ],
+      "name": "unique_student_classroom",
+      "nils_distinct?": true,
+      "where": null
+    }
+  ],
   "multitenancy": {
     "attribute": null,
     "global": null,
@@ -84,5 +152,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "students"
+  "table": "enrollments"
 }

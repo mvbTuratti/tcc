@@ -17,7 +17,7 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "email",
+      "source": "content",
       "type": "text"
     },
     {
@@ -58,15 +58,44 @@
           "global": null,
           "strategy": null
         },
-        "name": "students_user_id_fkey",
-        "on_delete": null,
+        "name": "responses_author_id_fkey",
+        "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
         "table": "users"
       },
       "size": null,
-      "source": "user_id",
+      "source": "author_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "responses_post_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "posts"
+      },
+      "size": null,
+      "source": "post_id",
       "type": "uuid"
     }
   ],
@@ -75,7 +104,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "43665EAEB55D3E1B46C28AF1B20F7AC9EB6C68CE544FD0489E378570EEADAFD6",
+  "hash": "53D1911859F6AF9615408A27DC0BCB810B53860DBA9C1911F90910261967B305",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -84,5 +113,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "students"
+  "table": "responses"
 }
