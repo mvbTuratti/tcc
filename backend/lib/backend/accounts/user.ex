@@ -5,6 +5,7 @@ defmodule Backend.Accounts.User do
     extensions: [AshAuthentication],
     authorizers: [Ash.Policy.Authorizer],
     domain: Backend.Accounts
+  require Ash.Query
 
   postgres do
     table "users"
@@ -75,6 +76,18 @@ defmodule Backend.Accounts.User do
         IO.inspect(changeset, label: "CHG FINAL")
         changeset
       end
+      change after_action(fn _changeset, user, context ->
+        case Backend.Class.Student
+             |> Ash.Query.filter(expr(email == ^user.email and is_nil(user_id)))
+             |> Ash.read_one(actor: user, tenant: context.tenant) do
+
+          {:ok, student} when not is_nil(student) ->
+            Ash.update(student, %{user_id: user.id}, actor: user, tenant: context.tenant)
+          _ ->
+            :ok
+        end
+        {:ok, user}
+      end)
     end
 
     read :by_id do

@@ -27,47 +27,7 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "event_date",
-      "type": "date"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "start_time",
-      "type": "time"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "end_time",
-      "type": "time"
-    },
-    {
-      "allow_nil?": false,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "event_type",
-      "type": "text"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "description",
+      "source": "status",
       "type": "text"
     },
     {
@@ -77,18 +37,8 @@
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "is_recurring",
+      "source": "is_delinquent",
       "type": "boolean"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": null,
-      "size": null,
-      "source": "recurrence_interval",
-      "type": "text"
     },
     {
       "allow_nil?": false,
@@ -128,7 +78,36 @@
           "global": null,
           "strategy": null
         },
-        "name": "events_classroom_id_fkey",
+        "name": "enrollments_student_id_fkey",
+        "on_delete": "delete",
+        "on_update": null,
+        "primary_key?": true,
+        "schema": "public",
+        "table": "students"
+      },
+      "size": null,
+      "source": "student_id",
+      "type": "uuid"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": {
+        "deferrable": false,
+        "destination_attribute": "id",
+        "destination_attribute_default": null,
+        "destination_attribute_generated": null,
+        "index?": false,
+        "match_type": null,
+        "match_with": null,
+        "multitenancy": {
+          "attribute": null,
+          "global": null,
+          "strategy": null
+        },
+        "name": "enrollments_classroom_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
@@ -145,7 +124,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "F17F6B4C7B198B08FEB107C4F506A90419D84D2555CAE1A2A024601F5782E8F7",
+  "hash": "EDF47B94DEC8B7D02C377819E56934C1C342CB23C7EDD966D89795E8E25064D1",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -154,5 +133,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "events"
+  "table": "enrollments"
 }

@@ -17,13 +17,13 @@ defmodule Backend.Class do
         delete(:destroy)
       end
 
-      base_route "/student", Backend.Class.Student do
-        get(:read)
-        index :read
-        post(:create)
-        patch(:update)
-        delete(:destroy)
-      end
+      # base_route "/student", Backend.Class.Student do
+      #   # index :read
+      #   # get :by_id
+      #   # # post(:create, upsert?: true)
+      #   # patch(:update, query_params: [:version])
+      #   # delete(:destroy)
+      # end
 
       base_route "/enrollment", Backend.Class.Enrollment do
         get(:read)
@@ -65,60 +65,14 @@ defmodule Backend.Class do
       end
     end
   end
-
   resources do
-    resource Backend.Class.ClassRoom do
-      define :create_class, action: :create, args: [:name, :description]
-      define :update_class, action: :update
-      define :get_class, args: [:id], action: :by_id
-      define :delete_class, action: :destroy
-    end
-
-    resource Backend.Class.ClassRoomOwner do
-      define :assign_owner, action: :create
-      define :delete_entry, action: :destroy
-      define :get_professors, action: :read
-    end
-
-    resource Backend.Class.Student do
-      define :create_student, action: :create, args: [:email]
-      define :read_students, action: :read
-      define :update_student, action: :update
-      define :delete_student, action: :destroy
-    end
-
-    resource Backend.Class.Enrollment do
-      define :create_enrollment, action: :create, args: [:student_id, :classroom_id, :status, :is_delinquent]
-      define :read_enrollments, action: :read
-      define :update_enrollment, action: :update
-      define :delete_enrollment, action: :destroy
-    end
-
-    resource Backend.Class.Post do
-      # define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
-      # define :read_posts, action: :read
-      # define :update_post, action: :update
-      # define :delete_post, action: :destroy
-    end
-    resource Backend.Class.Billing do
-      # define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
-      # define :read_posts, action: :read
-      # define :update_post, action: :update
-      # define :delete_post, action: :destroy
-    end
-
-    resource Backend.Class.Response do
-      # define :create_post, action: :create, args: [:content, :classroom_id, :author_id]
-      # define :read_posts, action: :read
-      # define :update_post, action: :update
-      # define :delete_post, action: :destroy
-    end
-
-    resource Backend.Class.Event do
-      define :create_event, action: :create, args: [:event_date, :start_time, :end_time, :event_type, :description, :is_recurring, :recurrence_interval, :classroom_id]
-      define :read_events, action: :read
-      define :update_event, action: :update
-      define :delete_event, action: :destroy
-    end
+    resource Backend.Class.ClassRoom
+    resource Backend.Class.ClassRoomOwner
+    resource Backend.Class.Student
+    resource Backend.Class.Enrollment
+    resource Backend.Class.Post
+    resource Backend.Class.Billing
+    resource Backend.Class.Response
+    resource Backend.Class.Event
   end
 end

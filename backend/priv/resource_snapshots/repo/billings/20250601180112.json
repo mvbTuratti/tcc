@@ -12,12 +12,62 @@
     },
     {
       "allow_nil?": false,
+      "default": "1",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "version",
+      "type": "bigint"
+    },
+    {
+      "allow_nil?": false,
       "default": "nil",
       "generated?": false,
       "primary_key?": false,
       "references": null,
       "size": null,
-      "source": "content",
+      "source": "price",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "method",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "city",
+      "type": "text"
+    },
+    {
+      "allow_nil?": false,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "name",
+      "type": "text"
+    },
+    {
+      "allow_nil?": true,
+      "default": "nil",
+      "generated?": false,
+      "primary_key?": false,
+      "references": null,
+      "size": null,
+      "source": "qr_code",
       "type": "text"
     },
     {
@@ -58,44 +108,15 @@
           "global": null,
           "strategy": null
         },
-        "name": "responses_author_id_fkey",
+        "name": "billings_classroom_id_fkey",
         "on_delete": "delete",
         "on_update": null,
         "primary_key?": true,
         "schema": "public",
-        "table": "users"
+        "table": "classrooms"
       },
       "size": null,
-      "source": "author_id",
-      "type": "uuid"
-    },
-    {
-      "allow_nil?": true,
-      "default": "nil",
-      "generated?": false,
-      "primary_key?": false,
-      "references": {
-        "deferrable": false,
-        "destination_attribute": "id",
-        "destination_attribute_default": null,
-        "destination_attribute_generated": null,
-        "index?": false,
-        "match_type": null,
-        "match_with": null,
-        "multitenancy": {
-          "attribute": null,
-          "global": null,
-          "strategy": null
-        },
-        "name": "responses_post_id_fkey",
-        "on_delete": "delete",
-        "on_update": null,
-        "primary_key?": true,
-        "schema": "public",
-        "table": "posts"
-      },
-      "size": null,
-      "source": "post_id",
+      "source": "classroom_id",
       "type": "uuid"
     }
   ],
@@ -104,7 +125,7 @@
   "custom_indexes": [],
   "custom_statements": [],
   "has_create_action": true,
-  "hash": "FC7FC172720B7BD28233B70D009BAFEF6A7BF7D26D77D9C6CDD995E2F1668016",
+  "hash": "E67F82D6E8555AFE8B354E61D7F475B8B7AC1C0B280131B9814D3D39F3604726",
   "identities": [],
   "multitenancy": {
     "attribute": null,
@@ -113,5 +134,5 @@
   },
   "repo": "Elixir.Backend.Repo",
   "schema": null,
-  "table": "responses"
+  "table": "billings"
 }
