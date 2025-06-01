@@ -1,5 +1,6 @@
+// src/sidebar/SideBar.tsx
 import React, { useState } from 'react';
-import { Menu, Row, Button } from 'antd';
+import { Menu } from 'antd';
 import {
   AppstoreOutlined,
   HomeOutlined,
@@ -9,10 +10,10 @@ import {
   UnorderedListOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
-import { useNavigate } from 'react-router';
+import { useNavigate } from 'react-router-dom';
 import CreateClassroomModal from '../components/CreateClassroomModal';
 import ParticipatingClassroomsModal from '../components/ParticipatingClassroomsModal';
-import type { ClassroomSummary } from '../routes/Home';
+import { useOwnedClassrooms, useEnrolledClassrooms } from '../services/classroomQueries';
 
 const SideBar: React.FC = () => {
   const navigate = useNavigate();
@@ -20,21 +21,18 @@ const SideBar: React.FC = () => {
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isParticipatingModalVisible, setIsParticipatingModalVisible] = useState(false);
 
-  // dados mockados para exemplo
-  const professorRooms: ClassroomSummary[] = [
-    { name: 'Sala de Matemática', instructor: 'Prof. João' },
-    { name: 'Sala de Física', instructor: 'Prof. Ana' },
-    { name: 'Sala de Química', instructor: 'Prof. Carlos' },
-    { name: 'Sala de História', instructor: 'Prof. Maria' },
-  ];
-  const studentRooms: ClassroomSummary[] = [
-    { name: 'Sala de Biologia', instructor: 'Prof. Pedro' },
-    { name: 'Sala de Geografia', instructor: 'Prof. Luiza' },
-    { name: 'Sala de Inglês', instructor: 'Prof. Carla' },
-    { name: 'Sala de Espanhol', instructor: 'Prof. Marcos' },
-  ];
+  const { data: professorRooms = [] } = useOwnedClassrooms();
+  const { data: studentRooms = [] } = useEnrolledClassrooms();
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
+    if (key.startsWith('23-')) {
+      const id = key.replace('23-', '');
+      if (id) {
+        navigate(`/classroom/${id}`);
+      }
+      return;
+    }
+
     switch (key) {
       case 'create-sala':
         setIsCreateModalVisible(true);
@@ -54,6 +52,13 @@ const SideBar: React.FC = () => {
       default:
         break;
     }
+  };
+
+  const generateRoomItems = (rooms: { id: string; name: string }[], prefix: string) => {
+    return rooms.map((room) => ({
+      key: `${prefix}-${room.id}`,
+      label: room.name,
+    }));
   };
 
   const items: MenuProps['items'] = [
@@ -80,20 +85,12 @@ const SideBar: React.FC = () => {
         {
           key: '23',
           label: 'Professor',
-          children: [
-            { key: '231', label: 'Option 1' },
-            { key: '232', label: 'Option 2' },
-            { key: '233', label: 'Option 3' },
-          ],
+          children: generateRoomItems(professorRooms, '23'),
         },
         {
           key: '24',
           label: 'Aluno',
-          children: [
-            { key: '241', label: 'Option 1' },
-            { key: '242', label: 'Option 2' },
-            { key: '243', label: 'Option 3' },
-          ],
+          children: generateRoomItems(studentRooms, '24'),
         },
       ],
     },

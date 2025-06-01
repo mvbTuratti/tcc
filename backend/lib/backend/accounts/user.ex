@@ -38,14 +38,15 @@ defmodule Backend.Accounts.User do
       signing_secret fn _, _ ->
         {:ok, Application.fetch_env!(:backend, :token_signing_secret)}
       end
-      subject_name :id
+ #     subject_name :id
     end
     strategies do
       google do
         client_id Backend.Secrets
         redirect_uri Backend.Secrets
         client_secret Backend.Secrets
-        authorization_params [scope: "email profile https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.freebusy"]
+        authorization_params [scope: "email profile"]
+#        authorization_params [scope: "email profile https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.freebusy"]
         # authorization_params [scope: "https://www.googleapis.com/auth/calendar.app.created https://www.googleapis.com/auth/calendar.freebusy"]
       end
     end

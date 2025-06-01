@@ -1,6 +1,6 @@
 // routes/classroom/types.ts
 export interface Post {
-    id: number;
+    id: string;
     text: string;
   }
   
@@ -11,7 +11,7 @@ export interface Post {
   }
   
   export interface Student {
-    id: number;
+    id: string;
     name: string;
     email: string;
     status: "regular" | "pending" | "blocked";
