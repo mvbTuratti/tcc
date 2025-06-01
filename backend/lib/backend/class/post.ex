@@ -17,9 +17,11 @@ defmodule Backend.Class.Post do
     end
   end
 
-  json_api do
-    type "post"
-  end
+json_api do
+  type "post"
+
+  includes [:classroom]
+end
 
   actions do
     defaults [:destroy]
@@ -69,7 +71,9 @@ defmodule Backend.Class.Post do
   end
 
   relationships do
-    belongs_to :classroom, Backend.Class.ClassRoom
+    belongs_to :classroom, Backend.Class.ClassRoom do
+    public? true
+  end
     belongs_to :author, Backend.Accounts.User
     has_many :responses, Backend.Class.Response, destination_attribute: :post_id
   end

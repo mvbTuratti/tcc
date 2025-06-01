@@ -1,16 +1,16 @@
-import React from 'react';
-import { Form, Input, Button, List, Card } from 'antd';
+// src/routes/classroom/ClassroomPosts.tsx
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import { Form, Input, Button, List, Card, message } from 'antd';
 import type { Post, ClassDate } from './types';
+import {
+  getPostsByClassroom,
+  createPost,
+  updatePost,
+  deletePost,
+} from '../../services/postService';
 
 interface ClassroomPostsProps {
-  posts: Post[];
-  setPosts: React.Dispatch<React.SetStateAction<Post[]>>;
-  editingPostId: number | null;
-  setEditingPostId: React.Dispatch<React.SetStateAction<number | null>>;
-  editingText: string;
-  setEditingText: React.Dispatch<React.SetStateAction<string>>;
-  handlePostSubmit: (newPostText: string) => void;
-  handleSaveEdit: (id: number, newText: string) => void;
   scheduledClasses: ClassDate[];
 }
 
@@ -19,30 +19,51 @@ function formatDate(dateStr: string): string {
   return `${day}/${month}/${year}`;
 }
 
-const ClassroomPosts: React.FC<ClassroomPostsProps> = (props) => {
-  const {
-    posts,
-    setPosts,
-    editingPostId,
-    setEditingPostId,
-    editingText,
-    setEditingText,
-    handlePostSubmit,
-    handleSaveEdit,
-    scheduledClasses
-  } = props;
-
+const ClassroomPosts: React.FC<ClassroomPostsProps> = ({ scheduledClasses }) => {
+  const { id: classroomId } = useParams();
   const [form] = Form.useForm();
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [editingPostId, setEditingPostId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState('');
 
-  // Lógica para excluir um post
-  const handleDelete = (id: number) => {
-    setPosts(posts.filter((post) => post.id !== id));
+  useEffect(() => {
+    if (!classroomId) return;
+    getPostsByClassroom(classroomId)
+      .then(setPosts)
+      .catch(() => message.error('Erro ao carregar posts'));
+  }, [classroomId]);
+
+  const onFinish = async (values: { postText: string }) => {
+    if (!classroomId) return;
+    try {
+      const newPost = await createPost(values.postText, classroomId);
+      setPosts((prev) => [newPost, ...prev]);
+      form.resetFields();
+    } catch {
+      message.error('Erro ao criar post');
+    }
   };
 
-  // Ao enviar o formulário, chama handlePostSubmit
-  const onFinish = (values: { postText: string }) => {
-    handlePostSubmit(values.postText);
-    form.resetFields();
+  const handleSaveEdit = async (id: string, newText: string) => {
+    try {
+      await updatePost(id, newText);
+      setPosts((prev) =>
+        prev.map((post) => (post.id === id ? { ...post, text: newText } : post))
+      );
+      setEditingPostId(null);
+      setEditingText('');
+    } catch {
+      message.error('Erro ao atualizar post');
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deletePost(id);
+      setPosts((prev) => prev.filter((post) => post.id !== id));
+    } catch {
+      message.error('Erro ao excluir post');
+    }
   };
 
   return (
@@ -90,14 +111,7 @@ const ClassroomPosts: React.FC<ClassroomPostsProps> = (props) => {
               <div>
                 {editingPostId === post.id ? (
                   <>
-                    <Button
-                      type="link"
-                      onClick={() => {
-                        handleSaveEdit(post.id, editingText);
-                        setEditingPostId(null);
-                        setEditingText('');
-                      }}
-                    >
+                    <Button type="link" onClick={() => handleSaveEdit(post.id, editingText)}>
                       Salvar
                     </Button>
                     <Button

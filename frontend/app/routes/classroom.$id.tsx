@@ -1,22 +1,24 @@
+// routes/classroom/[id].tsx
 import React, { useState } from 'react';
+import { useParams } from 'react-router-dom';
 import { Card, Tabs } from 'antd';
 import type { Post, Student, ClassDate } from './classroom/types';
-
 import ClassroomPosts from './classroom/ClassroomPosts';
 import ClassroomStudents from './classroom/ClassroomStudents';
 import ClassroomPayments from './classroom/ClassroomPayments';
 
-const Classroom: React.FC = () => {
-  // ---------- ESTADOS (compartilhados entre as abas) ----------
+const ClassroomById: React.FC = () => {
+  const { id: classroomId } = useParams<{ id: string }>();
+
   const [posts, setPosts] = useState<Post[]>([]);
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
 
   const [students, setStudents] = useState<Student[]>([
-    { id: 1, name: "João", email: "joao@example.com", status: "regular" },
-    { id: 2, name: "Maria", email: "maria@example.com", status: "regular" },
-    { id: 3, name: "Carlos", email: "carlos@example.com", status: "blocked" },
-    { id: 4, name: "Ana", email: "ana@example.com", status: "blocked" },
+    { id: 1, name: 'João', email: 'joao@example.com', status: 'regular' },
+    { id: 2, name: 'Maria', email: 'maria@example.com', status: 'regular' },
+    { id: 3, name: 'Carlos', email: 'carlos@example.com', status: 'blocked' },
+    { id: 4, name: 'Ana', email: 'ana@example.com', status: 'blocked' },
   ]);
 
   const scheduledClasses: ClassDate[] = [
@@ -28,7 +30,6 @@ const Classroom: React.FC = () => {
     { date: '2025-03-15', startHour: '15:30', finalHour: '18:00' },
   ];
 
-  // ---------- FUNÇÕES (podem ser passadas como props) ----------
   const handlePostSubmit = (newPostText: string) => {
     if (newPostText.trim()) {
       const newPost: Post = { id: Date.now(), text: newPostText };
@@ -55,8 +56,11 @@ const Classroom: React.FC = () => {
           boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
         }}
       >
+        <h2 style={{ marginBottom: 16 }}>
+          Sala: <code>{classroomId}</code>
+        </h2>
+
         <Tabs defaultActiveKey="posts">
-          {/* Aba de POSTS */}
           <Tabs.TabPane tab="Posts" key="posts">
             <ClassroomPosts
               posts={posts}
@@ -71,7 +75,6 @@ const Classroom: React.FC = () => {
             />
           </Tabs.TabPane>
 
-          {/* Aba de ALUNOS */}
           <Tabs.TabPane tab="Alunos" key="alunos">
             <ClassroomStudents
               students={students}
@@ -79,7 +82,6 @@ const Classroom: React.FC = () => {
             />
           </Tabs.TabPane>
 
-          {/* Aba de PAGAMENTOS */}
           <Tabs.TabPane tab="Pagamentos" key="pagamentos">
             <ClassroomPayments />
           </Tabs.TabPane>
@@ -89,4 +91,4 @@ const Classroom: React.FC = () => {
   );
 };
 
-export default Classroom;
+export default ClassroomById;
