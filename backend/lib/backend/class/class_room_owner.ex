@@ -39,6 +39,7 @@ defmodule Backend.Class.ClassRoomOwner do
   actions do
     defaults [:read, :update, :destroy]
     create :create do
+      primary? true
       accept [:user_id, :classroom_id]
     end
   end

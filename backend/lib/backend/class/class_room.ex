@@ -49,28 +49,39 @@ defmodule Backend.Class.ClassRoom do
 
     create :create do
       primary? true
-      accept [:name, :description]
-      change after_action(fn changeset, result, ctx ->
-        actor = ctx.actor
-        if actor do
-          {:ok, _} =
-            Backend.Class.ClassRoomOwner
-            |> Ash.Changeset.for_create(:create, %{
-              classroom_id: result.id,
-              user_id: actor.id
-            })
-            |> Ash.create()
-
-          {:ok, result}
+      accept [:name, :description, :is_external]
+      change fn changeset, context ->
+        if actor = context.actor do
+          owner_data = %{user_id: actor.id}
+          Ash.Changeset.manage_relationship(changeset, :classroom_owners, [owner_data], type: :create)
         else
-          {:error, "Actor not found"}
+          Ash.Changeset.add_error(changeset, field: :actor, message: "must be present")
         end
-      end)
-
+      end
     end
+    # create :create do
+    #   primary? true
+    #   accept [:name, :description, :is_external]
+    #   change after_action(fn changeset, result, ctx ->
+    #     actor = ctx.actor
+    #     if actor do
+    #       {:ok, _} =
+    #         Backend.Class.ClassRoomOwner
+    #         |> Ash.Changeset.for_create(:create, %{
+    #           classroom_id: result.id,
+    #           user_id: actor.id
+    #         })
+    #         |> Ash.create()
+
+    #       {:ok, result}
+    #     else
+    #       {:error, "Actor not found"}
+    #     end
+    #   end)
+    # end
 
     update :update do
-      accept [:name, :description]
+      accept [:name, :description, :is_external]
     end
 
     changes do
@@ -90,6 +101,7 @@ defmodule Backend.Class.ClassRoom do
 
       public? true
     end
+    attribute :is_external, :boolean, default: true, public?: true, allow_nil?: true
 
     attribute :description, :string do
       allow_nil? true
@@ -155,6 +167,10 @@ defmodule Backend.Class.ClassRoom do
       public? true
     end
     has_many :classroom_owners, Backend.Class.ClassRoomOwner do
+      destination_attribute :classroom_id
+      public? true
+    end
+    has_one :billing, Backend.Class.Billing do
       destination_attribute :classroom_id
       public? true
     end
