@@ -2,10 +2,14 @@ defmodule Backend.Accounts.User do
   require Ash.Resource.Change.Builtins
   use Ash.Resource,
     data_layer: AshPostgres.DataLayer,
-    extensions: [AshAuthentication],
+    extensions: [AshAuthentication, AshJsonApi.Resource],
     authorizers: [Ash.Policy.Authorizer],
     domain: Backend.Accounts
   require Ash.Query
+
+  json_api do
+    type "user"
+  end
 
   postgres do
     table "users"
@@ -93,6 +97,11 @@ defmodule Backend.Accounts.User do
     read :by_id do
       argument :id, :uuid, allow_nil?: false
       filter expr(id == ^arg(:id))
+    end
+
+    read :me do
+      get? true
+      filter expr(id == ^actor(:id))
     end
   end
 
