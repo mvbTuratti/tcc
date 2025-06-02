@@ -1,5 +1,5 @@
 
-defmodule Backend.Class.Checks.IsClassroomOwner do
+defmodule Backend.Class.Checks.IsOwnerAndNotThemselves do
   use Ash.Policy.Check
 
   @impl true

@@ -8,7 +8,6 @@ defmodule Backend.Class.Enrollment do
     ]
   require Ash.Query
 
-
   postgres do
     table "enrollments"
     repo Backend.Repo
@@ -23,7 +22,10 @@ defmodule Backend.Class.Enrollment do
   end
 
   actions do
-    defaults [:read, :destroy]
+    defaults [:destroy]
+    read :read do
+      prepare build(load: [student: :user])
+    end
     read :me do
       argument :classroom_id, :uuid, allow_nil?: false
       get? true
@@ -56,6 +58,13 @@ defmodule Backend.Class.Enrollment do
     identity :unique_student_classroom, [:student_id, :classroom_id]
   end
 
+  calculations do
+    calculate :actor_is_owner?, :boolean,
+      expr(exists(classroom_owners, user_id == ^actor(:id))) do
+      description "Checks if the current actor is an owner of this classroom."
+    end
+  end
+
   attributes do
     uuid_primary_key :id do
       public? true
@@ -82,7 +91,7 @@ defmodule Backend.Class.Enrollment do
   end
   policies do
     policy action_type(:create) do
-      authorize_if Backend.Class.Checks.IsClassroomOwner
+      authorize_if Backend.Class.Checks.IsOwnerAndNotThemselves
     end
 
     policy action(:read) do
