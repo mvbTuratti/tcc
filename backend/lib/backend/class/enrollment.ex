@@ -76,7 +76,9 @@ defmodule Backend.Class.Enrollment do
 
   relationships do
     belongs_to :student, Backend.Class.Student
-    belongs_to :classroom, Backend.Class.ClassRoom
+    belongs_to :classroom, Backend.Class.ClassRoom do
+      public? true
+    end
   end
   policies do
     policy action_type(:create) do

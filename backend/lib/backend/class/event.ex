@@ -20,15 +20,7 @@ defmodule Backend.Class.Event do
   end
 
   actions do
-    defaults [:read, :destroy]
-    create :create do
-      accept [:event_date, :start_time, :end_time, :event_type, :description, :is_recurring, :recurrence_interval, :classroom_id]
-    end
-
-    update :update do
-      accept [:event_date, :start_time, :end_time, :event_type, :description, :is_recurring, :recurrence_interval]
-    end
-
+    defaults [:read, :create, :update, :destroy]
     changes do
       # change optimistic_lock(:version), on: [:create, :destroy, :update]
       change optimistic_lock(:version), on: [:destroy, :update]
@@ -45,7 +37,14 @@ defmodule Backend.Class.Event do
     attribute :event_type, Backend.Types.EventType, allow_nil?: false, public?: true
     attribute :description, :string, allow_nil?: true, public?: true
     attribute :is_recurring, :boolean, default: false, allow_nil?: true, public?: true
-    attribute :recurrence_interval, Backend.Types.RecurrenceInterval, allow_nil?: true, public?: true
+    attribute :recurrence_days_of_week, {:array, Backend.Types.DayOfWeek} do
+      allow_nil? true
+      public? true
+      constraints [
+        max_length: 7
+      ]
+    end
+    attribute :recurrence_ends_at, :date, allow_nil?: true, public?: true
 
     create_timestamp :inserted_at
     update_timestamp :updated_at

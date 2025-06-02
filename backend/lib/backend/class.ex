@@ -17,14 +17,6 @@ defmodule Backend.Class do
         delete(:destroy)
       end
 
-      # base_route "/student", Backend.Class.Student do
-      #   # index :read
-      #   # get :by_id
-      #   # # post(:create, upsert?: true)
-      #   # patch(:update, query_params: [:version])
-      #   # delete(:destroy)
-      # end
-
       base_route "/enrollment", Backend.Class.Enrollment do
         get :me, route: "/me"
         index :read
@@ -45,7 +37,7 @@ defmodule Backend.Class do
         get :by_id
         post(:create, upsert?: true)
         patch(:update, query_params: [:version])
-        delete(:destroy)
+        delete(:destroy, query_params: [:version])
       end
 
       base_route "/response", Backend.Class.Response do
@@ -60,8 +52,8 @@ defmodule Backend.Class do
         get(:read)
         index :read
         post(:create)
-        patch(:update)
-        delete(:destroy)
+        patch(:update, query_params: [:version])
+        delete(:destroy, query_params: [:version])
       end
     end
   end
