@@ -19,10 +19,12 @@ defmodule Backend.Class do
 
       base_route "/enrollment", Backend.Class.Enrollment do
         get :me, route: "/me"
+        index :list_for_classroom_panel, route: "/members"
         index :read
         post(:create)
         patch(:update)
         delete(:destroy)
+        relationship :student, :read
       end
 
       base_route "/post", Backend.Class.Post do
@@ -32,7 +34,6 @@ defmodule Backend.Class do
         patch(:update, query_params: [:version])
         delete(:destroy)
       end
-
       base_route "/billing", Backend.Class.Billing do
         get :by_id
         post(:create, upsert?: true)

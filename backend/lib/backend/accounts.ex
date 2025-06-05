@@ -5,7 +5,7 @@ defmodule Backend.Accounts do
   json_api do
     routes do
       base_route "/user", Backend.Accounts.User do
-        index :me, route: "/me"        
+        index :me, route: "/me"
         end
       end
     end

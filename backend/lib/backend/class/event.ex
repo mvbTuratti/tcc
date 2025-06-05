@@ -20,7 +20,12 @@ defmodule Backend.Class.Event do
   end
 
   actions do
-    defaults [:read, :update, :destroy]
+    defaults [:update, :destroy]
+    read :read do
+      primary?(true)
+      prepare build(sort: :event_date)
+      pagination keyset?: true, offset?: true, required?: false, countable: true
+    end
     create :create do
       accept [:event_date, :start_time, :end_time, :url, :event_type, :description, :is_recurring,
       :recurrence_days_of_week, :recurrence_ends_at, :classroom_id]

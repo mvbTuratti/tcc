@@ -19,13 +19,25 @@ defmodule Backend.Class.Enrollment do
 
   json_api do
     type "enrollment"
+    includes [student: [:user]]
   end
 
   actions do
     defaults [:destroy]
     read :read do
+      primary? true
       prepare build(load: [student: :user])
     end
+    read :list_for_classroom_panel do
+      argument :classroom_id, :uuid, allow_nil?: false
+      primary? false
+      filter expr(classroom_id == ^arg(:classroom_id))
+      prepare fn query, _context ->
+        IO.inspect(query, label: "CHEGOU AQUI EM PREPARE")
+        Ash.Query.load(query, :student)
+      end
+    end
+
     read :me do
       argument :classroom_id, :uuid, allow_nil?: false
       get? true
@@ -58,12 +70,12 @@ defmodule Backend.Class.Enrollment do
     identity :unique_student_classroom, [:student_id, :classroom_id]
   end
 
-  calculations do
-    calculate :actor_is_owner?, :boolean,
-      expr(exists(classroom_owners, user_id == ^actor(:id))) do
-      description "Checks if the current actor is an owner of this classroom."
-    end
-  end
+  # calculations do
+  #   calculate :actor_is_owner?, :boolean,
+  #     expr(exists(classroom_owners, user_id == ^actor(:id))) do
+  #     description "Checks if the current actor is an owner of this classroom."
+  #   end
+  # end
 
   attributes do
     uuid_primary_key :id do
@@ -84,7 +96,9 @@ defmodule Backend.Class.Enrollment do
   end
 
   relationships do
-    belongs_to :student, Backend.Class.Student
+    belongs_to :student, Backend.Class.Student do
+      public? true
+    end
     belongs_to :classroom, Backend.Class.ClassRoom do
       public? true
     end
@@ -94,11 +108,12 @@ defmodule Backend.Class.Enrollment do
       authorize_if Backend.Class.Checks.IsOwnerAndNotThemselves
     end
 
-    policy action(:read) do
-      authorize_if expr(
-        student.user_id == ^actor(:id) or
-        exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
-      )
+    policy action_type(:read) do
+      # authorize_if expr(
+      #   student.user_id == ^actor(:id) or
+      #   exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
+      # )
+      authorize_if always()
     end
     policy action(:me) do
       authorize_if expr(

@@ -18,6 +18,7 @@ defmodule Backend.Class.Student do
 
   json_api do
     type "student"
+    includes [:user]
   end
 
   actions do
@@ -87,7 +88,9 @@ defmodule Backend.Class.Student do
   end
 
   relationships do
-    has_many :enrollments, Backend.Class.Enrollment
+    has_many :enrollments, Backend.Class.Enrollment do
+      public? true
+    end
     belongs_to :user, Backend.Accounts.User do
       attribute_writable? true
       allow_nil? true
@@ -109,11 +112,7 @@ defmodule Backend.Class.Student do
       authorize_if always()
     end
     policy action_type(:read) do
-      authorize_if expr(
-        exists(user_id == ^actor(:id)) or
-        exists(enrollment, exists(classroom, exists(classroom_owners, user_id == ^actor(:id))))
-      )
-      # authorize_if always()
+      authorize_if always()
     end
   end
 

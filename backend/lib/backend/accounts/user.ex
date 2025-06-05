@@ -22,7 +22,7 @@ defmodule Backend.Accounts.User do
     end
     attribute :email, :ci_string do
       allow_nil? false
-
+      public? true
       constraints max_length: 256,
         allow_empty?: false
     end
