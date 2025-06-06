@@ -109,11 +109,11 @@ defmodule Backend.Class.Enrollment do
     end
 
     policy action_type(:read) do
-      # authorize_if expr(
-      #   student.user_id == ^actor(:id) or
-      #   exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
-      # )
-      authorize_if always()
+      authorize_if expr(
+        student.user_id == ^actor(:id) or
+        exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
+      )
+      # authorize_if always()
     end
     policy action(:me) do
       authorize_if expr(
@@ -130,6 +130,17 @@ defmodule Backend.Class.Enrollment do
       authorize_if expr(
         exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
       )
+    end
+  end
+
+  field_policies do
+    field_policy [:status, :is_delinquent] do
+      authorize_if expr(
+          exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
+      )
+    end
+    field_policy :* do
+      authorize_if always()
     end
   end
 end
