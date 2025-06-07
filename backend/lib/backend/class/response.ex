@@ -43,13 +43,13 @@ defmodule Backend.Class.Response do
     end
     attribute :content, :string do
       allow_nil? false
-
+      public? true
       constraints max_length: 500,
               allow_empty?: false
     end
 
     create_timestamp :inserted_at
-    update_timestamp :updated_at
+    update_timestamp :updated_at, public?: true
   end
 
   relationships do
