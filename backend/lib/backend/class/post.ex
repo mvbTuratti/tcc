@@ -66,7 +66,7 @@ end
       public? true
     end
 
-    create_timestamp :inserted_at, public?: true
+    create_timestamp :inserted_at
     update_timestamp :updated_at, public?: true
   end
 
