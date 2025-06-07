@@ -20,7 +20,7 @@ defmodule Backend.Class.Post do
 json_api do
   type "post"
 
-  includes [:classroom]
+  includes [:author]
 end
 
   actions do
@@ -66,16 +66,14 @@ end
       public? true
     end
 
-    create_timestamp :inserted_at
-    update_timestamp :updated_at
+    create_timestamp :inserted_at, public?: true
+    update_timestamp :updated_at, public?: true
   end
 
   relationships do
-    belongs_to :classroom, Backend.Class.ClassRoom do
-    public? true
-  end
-    belongs_to :author, Backend.Accounts.User
-    has_many :responses, Backend.Class.Response, destination_attribute: :post_id
+    belongs_to :classroom, Backend.Class.ClassRoom
+    belongs_to :author, Backend.Accounts.User, public?: true
+    has_many :responses, Backend.Class.Response, destination_attribute: :post_id, public?: true
   end
 
   policies do
@@ -83,10 +81,10 @@ end
       authorize_if expr(author_id == ^actor(:id))
     end
     policy action_type(:destroy) do
-      authorize_if expr(author_id == ^actor(:id))
+      authorize_if expr(author_id == ^actor(:id) or exists(classroom, exists(classroom_owners, user_id == ^actor(:id))))
     end
     policy action_type(:create) do
-      authorize_if always()
+      authorize_if Backend.Class.Checks.IsEnrolledOrOwner
     end
     policy action_type(:read) do
       authorize_if expr(

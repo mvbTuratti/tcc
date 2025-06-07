@@ -113,7 +113,6 @@ defmodule Backend.Class.Enrollment do
         student.user_id == ^actor(:id) or
         exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
       )
-      # authorize_if always()
     end
     policy action(:me) do
       authorize_if expr(
