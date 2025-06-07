@@ -42,8 +42,8 @@ defmodule Backend.Class do
       end
 
       base_route "/response", Backend.Class.Response do
-        get(:read)
-        index :read
+        # get(:read)
+        # index :read
         post(:create)
         patch(:update)
         delete(:destroy)
