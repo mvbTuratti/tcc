@@ -2,7 +2,7 @@
 import { useQuery } from '@tanstack/react-query';
 
 async function fetchClassrooms(endpoint: string) {
-  const response = await fetch(`${endpoint}`, {
+  const response = await fetch(endpoint, {
     method: 'GET',
     credentials: 'include',
     headers: {
@@ -27,7 +27,6 @@ export function useOwnedClassrooms() {
   return useQuery({
     queryKey: ['ownedClassrooms'],
     queryFn: () => fetchClassrooms('/api/v1/classroom/owned'),
-    staleTime: 5 * 60 * 1000, // evita refetch por 5 minutos
   });
 }
 
@@ -35,6 +34,37 @@ export function useEnrolledClassrooms() {
   return useQuery({
     queryKey: ['enrolledClassrooms'],
     queryFn: () => fetchClassrooms('/api/v1/classroom/enrolled'),
-    staleTime: 5 * 60 * 1000, // evita refetch por 5 minutos
   });
+}
+
+export async function createClassroom(name: string, description?: string) {
+  const response = await fetch('/api/v1/classroom', {
+    method: 'POST',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/vnd.api+json',
+      'Accept': 'application/vnd.api+json',
+    },
+    body: JSON.stringify({
+      data: {
+        type: 'classroom',
+        attributes: {
+          name,
+          description,
+        },
+      },
+    }),
+  });
+
+  if (!response.ok) {
+    const json = await response.json();
+    throw new Error(json.errors?.[0]?.detail || 'Erro ao criar sala');
+  }
+
+  const json = await response.json();
+  return {
+    id: json.data.id,
+    name: json.data.attributes.name,
+    instructor: json.data.attributes.description ?? '(sem descrição)',
+  };
 }

@@ -1,49 +1,22 @@
 // src/components/CreateClassroomModal.tsx
-import React, { useState } from 'react';
-import {
-  Modal,
-  Form,
-  Input,
-  Select,
-  Radio,
-  Button,
-} from 'antd';
-
-type LinkOption = 'system' | 'manual';
+import React from 'react';
+import { Modal, Form, Input, Button } from 'antd';
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onCreate?: (data: {
-    name: string;
-    recurrence: string;
-    linkOption: LinkOption;
-    manualLink?: string;
-    extraProfessor?: string;
-    description?: string;
-  }) => void;
+  onCreate?: (data: { name: string; description?: string }) => void;
 }
 
 const { TextArea } = Input;
-const { Option } = Select;
 
 const CreateClassroomModal: React.FC<Props> = ({ visible, onClose, onCreate }) => {
   const [form] = Form.useForm();
-  const [linkOption, setLinkOption] = useState<LinkOption>('system');
 
   const handleFinish = async () => {
     const values = await form.validateFields();
-    const payload = {
-      name: values.name,
-      recurrence: values.recurrence,
-      linkOption,
-      manualLink: values.manualLink,
-      extraProfessor: values.extraProfessor,
-      description: values.description,
-    };
-    onCreate?.(payload);
+    onCreate?.({ name: values.name, description: values.description });
     form.resetFields();
-    setLinkOption('system');
     onClose();
   };
 
@@ -53,11 +26,13 @@ const CreateClassroomModal: React.FC<Props> = ({ visible, onClose, onCreate }) =
       visible={visible}
       onCancel={() => {
         form.resetFields();
-        setLinkOption('system');
         onClose();
       }}
       footer={[
-        <Button key="cancel" onClick={onClose}>
+        <Button key="cancel" onClick={() => {
+          form.resetFields();
+          onClose();
+        }}>
           Cancelar
         </Button>,
         <Button key="create" type="primary" onClick={handleFinish}>
@@ -76,53 +51,6 @@ const CreateClassroomModal: React.FC<Props> = ({ visible, onClose, onCreate }) =
           ]}
         >
           <Input placeholder="Ex: Aula de espanhol" maxLength={250} />
-        </Form.Item>
-
-        <Form.Item
-          name="recurrence"
-          label="Recorrência"
-          rules={[{ required: true, message: 'Selecione a recorrência' }]}
-        >
-          <Select placeholder="Semanal, Quinzenal ou Mensal">
-            <Option value="semanal">Semanal</Option>
-            <Option value="quinzenal">Quinzenal</Option>
-            <Option value="mensal">Mensal</Option>
-          </Select>
-        </Form.Item>
-
-        <Form.Item
-          name="linkOption"
-          label="Link da Sala de Aula"
-          rules={[{ required: true, message: 'Escolha uma opção de link' }]}
-        >
-          <Radio.Group
-            onChange={(e) => setLinkOption(e.target.value)}
-            value={linkOption}
-          >
-            <Radio value="system">Gerado pelo sistema</Radio>
-            <Radio value="manual">Adicionar manualmente</Radio>
-          </Radio.Group>
-        </Form.Item>
-
-        {linkOption === 'manual' && (
-          <Form.Item
-            name="manualLink"
-            label="Link Manual"
-            rules={[{ required: true, message: 'Insira o link da sala' }]}
-          >
-            <Input placeholder="https://..." />
-          </Form.Item>
-        )}
-
-        <Form.Item
-          name="extraProfessor"
-          label="Email de Professor Extra"
-          rules={[
-            { type: 'email', message: 'Email inválido' },
-            { max: 250, message: 'Máximo de 250 caracteres' },
-          ]}
-        >
-          <Input placeholder="email@exemplo.com" maxLength={250} />
         </Form.Item>
 
         <Form.Item

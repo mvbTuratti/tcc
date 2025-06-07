@@ -3,7 +3,7 @@ const BASE_URL = 'http://localhost:4000';
 async function fetchWithAuth<T>(endpoint: string): Promise<T> {
   const response = await fetch(`${BASE_URL}${endpoint}`, {
     method: 'GET',
-    credentials: 'include', // permite que o navegador envie cookies automaticamente
+    credentials: 'include',
     headers: {
       'Content-Type': 'application/vnd.api+json',
       'Accept': 'application/vnd.api+json'

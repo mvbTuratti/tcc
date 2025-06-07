@@ -1,11 +1,14 @@
-// routes/classroom/[id].tsx
-import React, { useState } from 'react';
+// src/routes/classroom/[id].tsx
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, Tabs } from 'antd';
+import { Card, Tabs, message } from 'antd';
 import type { Post, Student, ClassDate } from './classroom/types';
 import ClassroomPosts from './classroom/ClassroomPosts';
 import ClassroomStudents from './classroom/ClassroomStudents';
 import ClassroomPayments from './classroom/ClassroomPayments';
+import { getEnrollmentsByClassroom } from '../services/enrollmentService';
+
+const { TabPane } = Tabs;
 
 const ClassroomById: React.FC = () => {
   const { id: classroomId } = useParams<{ id: string }>();
@@ -14,12 +17,7 @@ const ClassroomById: React.FC = () => {
   const [editingPostId, setEditingPostId] = useState<number | null>(null);
   const [editingText, setEditingText] = useState('');
 
-  const [students, setStudents] = useState<Student[]>([
-    { id: 1, name: 'João', email: 'joao@example.com', status: 'regular' },
-    { id: 2, name: 'Maria', email: 'maria@example.com', status: 'regular' },
-    { id: 3, name: 'Carlos', email: 'carlos@example.com', status: 'blocked' },
-    { id: 4, name: 'Ana', email: 'ana@example.com', status: 'blocked' },
-  ]);
+  const [students, setStudents] = useState<Student[]>([]);
 
   const scheduledClasses: ClassDate[] = [
     { date: '2025-03-10', startHour: '15:30', finalHour: '18:00' },
@@ -30,19 +28,22 @@ const ClassroomById: React.FC = () => {
     { date: '2025-03-15', startHour: '15:30', finalHour: '18:00' },
   ];
 
+  useEffect(() => {
+    if (!classroomId) return; 
+    getEnrollmentsByClassroom(classroomId)
+      .then((lista) => setStudents(lista))
+      .catch(() => message.error('Erro ao carregar alunos'));
+  }, [classroomId]);
+
+  // Handlers de posts (mantidos do seu código original)
   const handlePostSubmit = (newPostText: string) => {
     if (newPostText.trim()) {
       const newPost: Post = { id: Date.now(), text: newPostText };
       setPosts([newPost, ...posts]);
     }
   };
-
   const handleSaveEdit = (id: number, newText: string) => {
-    setPosts(
-      posts.map((post) =>
-        post.id === id ? { ...post, text: newText } : post
-      )
-    );
+    setPosts(posts.map((post) => (post.id === id ? { ...post, text: newText } : post)));
   };
 
   return (
@@ -76,10 +77,15 @@ const ClassroomById: React.FC = () => {
           </Tabs.TabPane>
 
           <Tabs.TabPane tab="Alunos" key="alunos">
-            <ClassroomStudents
-              students={students}
-              setStudents={setStudents}
-            />
+            {classroomId ? (
+              <ClassroomStudents
+                students={students}
+                setStudents={setStudents}
+                classroomId={classroomId}
+              />
+            ) : (
+              <p>Carregando...</p>
+            )}
           </Tabs.TabPane>
 
           <Tabs.TabPane tab="Pagamentos" key="pagamentos">

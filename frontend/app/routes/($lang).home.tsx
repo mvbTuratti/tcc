@@ -12,14 +12,19 @@ import {
 } from 'antd';
 import CreateClassroomModal from '../components/CreateClassroomModal';
 import ParticipatingClassroomsModal from '../components/ParticipatingClassroomsModal';
-import type { ClassroomDate } from '../components/CreateClassroomModal';
-import { useEnrolledClassrooms, useOwnedClassrooms } from '../services/classroomQueries';
+import { useOwnedClassrooms, useEnrolledClassrooms, createClassroom } from '../services/classroomQueries';
 
 const { TabPane } = Tabs;
 
 interface UpcomingEvent {
   time: string;
   title: string;
+}
+
+interface ClassroomSummary {
+  id: string;
+  name: string;
+  instructor: string;
 }
 
 const Home: React.FC = () => {
@@ -35,22 +40,30 @@ const Home: React.FC = () => {
     { time: '17:00', title: 'Revisão de código' },
   ];
 
-  const { data: professorRooms = [], isLoading: loadingProf } = useOwnedClassrooms();
-  const { data: studentRooms = [], isLoading: loadingStudent } = useEnrolledClassrooms();
+  const {
+    data: professorRooms = [],
+    isLoading: loadingProf,
+    refetch: refetchOwnedClassrooms,
+  } = useOwnedClassrooms();
+
+  const {
+    data: studentRooms = [],
+    isLoading: loadingStudent,
+    refetch: refetchEnrolledClassrooms,
+  } = useEnrolledClassrooms();
 
   const [isCreateModalVisible, setIsCreateModalVisible] = React.useState(false);
   const [isParticipatingModalVisible, setIsParticipatingModalVisible] = React.useState(false);
 
-  const handleCreateClassroom = (data: {
-    name: string;
-    recurrence: string;
-    linkOption: 'system' | 'manual';
-    manualLink?: string;
-    extraProfessor?: string;
-    description?: string;
-    dates: ClassroomDate[];
-  }) => {
-    console.log('Sala criada:', data);
+  const handleCreateClassroom = async (data: { name: string; description?: string }) => {
+    try {
+      await createClassroom(data.name, data.description);
+      message.success('Sala criada com sucesso');
+      refetchOwnedClassrooms();
+      refetchEnrolledClassrooms();
+    } catch (error) {
+      message.error('Erro ao criar sala');
+    }
   };
 
   const totalParticipating = professorRooms.length + studentRooms.length;
@@ -59,7 +72,7 @@ const Home: React.FC = () => {
     <div className="p-8 w-[88vw]">
       <Card
         style={{
-          background: "#F9FAFB",
+          background: '#F9FAFB',
           height: '93vh',
           padding: '20px',
           borderRadius: '8px',
@@ -70,11 +83,7 @@ const Home: React.FC = () => {
         <h1 style={{ marginBottom: 24, fontSize: '2rem' }}>Dashboard Geral</h1>
 
         <Row justify="center" style={{ marginBottom: 32 }}>
-          <Button
-            type="primary"
-            size="large"
-            onClick={() => setIsCreateModalVisible(true)}
-          >
+          <Button type="primary" size="large" onClick={() => setIsCreateModalVisible(true)}>
             + Criar Nova Sala de Aula
           </Button>
         </Row>
@@ -108,11 +117,13 @@ const Home: React.FC = () => {
             <Card title="Salas Participando">
               <Tabs defaultActiveKey="professor">
                 <TabPane tab="Professor" key="professor">
-                  {loadingProf ? <p>Carregando...</p> : (
+                  {loadingProf ? (
+                    <p>Carregando...</p>
+                  ) : (
                     <List
                       itemLayout="horizontal"
                       dataSource={professorRooms.slice(0, 4)}
-                      renderItem={(room) => (
+                      renderItem={(room: ClassroomSummary) => (
                         <List.Item>
                           <List.Item.Meta title={room.name} description={room.instructor} />
                         </List.Item>
@@ -121,11 +132,13 @@ const Home: React.FC = () => {
                   )}
                 </TabPane>
                 <TabPane tab="Aluno" key="aluno">
-                  {loadingStudent ? <p>Carregando...</p> : (
+                  {loadingStudent ? (
+                    <p>Carregando...</p>
+                  ) : (
                     <List
                       itemLayout="horizontal"
                       dataSource={studentRooms.slice(0, 4)}
-                      renderItem={(room) => (
+                      renderItem={(room: ClassroomSummary) => (
                         <List.Item>
                           <List.Item.Meta title={room.name} description={room.instructor} />
                         </List.Item>
@@ -137,10 +150,7 @@ const Home: React.FC = () => {
 
               {totalParticipating > 4 && (
                 <Row justify="center" style={{ marginTop: 16 }}>
-                  <Button
-                    type="primary"
-                    onClick={() => setIsParticipatingModalVisible(true)}
-                  >
+                  <Button type="primary" onClick={() => setIsParticipatingModalVisible(true)}>
                     Exibir todas as salas participantes
                   </Button>
                 </Row>
@@ -160,6 +170,10 @@ const Home: React.FC = () => {
           onClose={() => setIsParticipatingModalVisible(false)}
           professorRooms={professorRooms}
           studentRooms={studentRooms}
+          onRefetch={() => {
+            refetchOwnedClassrooms();
+            refetchEnrolledClassrooms();
+          }}
         />
       </Card>
     </div>

@@ -1,266 +1,239 @@
-import React, { useState } from 'react';
-import {
-  Badge,
-  Calendar,
-  Button,
-  List,
-  Form,
-} from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Badge, Calendar, Button, Form, Modal, message } from 'antd';
 import type { BadgeProps, CalendarProps } from 'antd';
 import type { Dayjs } from 'dayjs';
 import dayjs from 'dayjs';
 
-import AddEventModal from './calendar/AddEventModal';
-import DayEventsModal from './calendar/DayEventsModal';
-import EditEventModal from './calendar/EditEventModal';
+import AddEventModal from '../components/calendar/AddEventModal';
+import DayEventsModal from '../components/calendar/DayEventsModal';
+import EditEventModal from '../components/calendar/EditEventModal';
 
-const { useForm } = Form;
+import {
+  getEvents,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getTeacherClassrooms,
+  type APIEvent,
+  type Classroom,
+} from '../services/eventService';
 
 interface EventItem {
-  type: string;
-  content: string;
-  startTime: string;
-  endTime: string;
-  classroom?: string;
+  id:           string;
+  type:         BadgeProps['status'];
+  content:      string;
+  startTime:    string;
+  endTime:      string;
+  url:          string;
+  is_recurring: boolean;
+  classroom_id: string | null;
+  classroom?:   string;
 }
 
 interface EditingEventData {
+  id:           string;
   originalDate: string;
-  index: number;
-  data: EventItem;
+  data:         EventItem;
 }
 
-// Componente principal
 const CalendarPage: React.FC = () => {
-  // --------------------- ESTADOS ---------------------
-  // Armazena todos os eventos, indexados por data (chave: "YYYY-MM-DD")
   const [events, setEvents] = useState<Record<string, EventItem[]>>({});
-
-  // Controle dos modais
-  const [isAddModalVisible, setIsAddModalVisible] = useState(false);
-  const [isDayModalVisible, setIsDayModalVisible] = useState(false);
-
-  // Data selecionada para mostrar/editar eventos do dia
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
-
-  // Dados do evento que está sendo editado
-  const [editingEvent, setEditingEvent] = useState<EditingEventData | null>(null);
-
-  // Formulários do antd para adicionar e editar eventos
-  const [formAdd] = useForm(); 
-  const [formEdit] = useForm();
-
+  const [classrooms, setClassrooms] = useState<Classroom[]>([]);
   const [mode, setMode] = useState<'month' | 'year'>('month');
 
-  // --------------------- FUNÇÕES DE AJUDA ---------------------
-  // Retorna os eventos de uma data específica, ordenados pelo horário de início
+  // modals
+  const [isAddVisible, setAddVisible]     = useState(false);
+  const [isDayVisible, setDayVisible]     = useState(false);
+  const [isEditVisible, setEditVisible]   = useState(false);
+  const [selectedDate, setSelectedDate]   = useState<Dayjs | null>(null);
+  const [editingEvent, setEditingEvent]   = useState<EditingEventData | null>(null);
+
+  const [formAdd]  = Form.useForm();
+  const [formEdit] = Form.useForm();
+
+  // Group API events into a date-keyed map
+  const groupByDate = (apiEvents: APIEvent[], rooms: Classroom[]): Record<string, EventItem[]> => {
+    const map: Record<string, EventItem[]> = {};
+    apiEvents.forEach(evt => {
+      const a = evt.attributes;
+      const dateKey = a.event_date.slice(0, 10); // "YYYY-MM-DD"
+      const item: EventItem = {
+        id:           evt.id,
+        type:         a.event_type as BadgeProps['status'],
+        content:      a.description,
+        startTime:    a.start_time,
+        endTime:      a.end_time,
+        url:          a.url,
+        is_recurring: a.is_recurring,
+        classroom_id: a.classroom_id,
+        classroom:    rooms.find(r => r.id === a.classroom_id)?.name,
+      };
+      map[dateKey] = (map[dateKey] || []).concat(item)
+        .sort((x, y) => dayjs(x.startTime, 'HH:mm:ss').diff(dayjs(y.startTime, 'HH:mm:ss')));
+    });
+    return map;
+  };
+
+  // initial fetch
+  useEffect(() => {
+    (async () => {
+      try {
+        const [apiEvents, rooms] = await Promise.all([
+          getEvents(),
+          getTeacherClassrooms()
+        ]);
+        setClassrooms(rooms);
+        setEvents(groupByDate(apiEvents, rooms));
+      } catch (err) {
+        message.error('Falha ao carregar eventos.');
+        console.error(err);
+      }
+    })();
+  }, []);
+
+  // Helpers
   const getListData = (value: Dayjs): EventItem[] => {
-    const dateKey = value.format('YYYY-MM-DD');
-    const dayEvents = events[dateKey] || [];
-    return dayEvents.sort((a, b) =>
-      dayjs(a.startTime, 'HH:mm').diff(dayjs(b.startTime, 'HH:mm'))
-    );
+    return events[value.format('YYYY-MM-DD')] || [];
   };
 
-  // Renderização dos eventos dentro de cada célula do calendário
-  const dateCellRender = (value: Dayjs) => {
-    const listData = getListData(value);
-    return (
-      <ul className="events">
-        {listData.map((item, index) => (
-          <li key={index}>
-            <Badge
-              status={item.type as BadgeProps['status']}
-              text={`${item.startTime} - ${item.endTime} | ${item.content}${
-                item.classroom ? ` | ${item.classroom}` : ''
-              }`}
-            />
-          </li>
-        ))}
-      </ul>
-    );
-  };
+  const dateCellRender: CalendarProps<Dayjs>['dateCellRender'] = (value) => (
+    <ul className="events">
+      {getListData(value).map((item) => (
+        <li key={item.id}>
+          <Badge
+            status={item.type}
+            text={`${item.startTime}–${item.endTime} | ${item.content}${item.classroom ? ` | ${item.classroom}` : ''}`}
+          />
+        </li>
+      ))}
+    </ul>
+  );
 
-  // --------------------- EVENTOS DO CALENDÁRIO ---------------------
-  // Atualiza o modo quando o painel do calendário muda
+  // Calendar events
   const onPanelChange: CalendarProps<Dayjs>['onPanelChange'] = (_, newMode) => {
     setMode(newMode);
   };
-
-  // Ao selecionar uma data, abre o modal de "Eventos do dia" (se estivermos no modo "month")
   const onSelectDate: CalendarProps<Dayjs>['onSelect'] = (date) => {
-    if (mode === 'month') {
-      setSelectedDate(date);
-      setIsDayModalVisible(true);
-    }
+    if (mode !== 'month') return;
+    setSelectedDate(date);
+    setDayVisible(true);
   };
 
-  // --------------------- MODAL "EVENTOS DO DIA" ---------------------
-  const handleDayModalCancel = () => {
-    setIsDayModalVisible(false);
-    setSelectedDate(null);
-  };
-
-  // Filtra os eventos do dia selecionado
-  const eventsForSelectedDay = selectedDate ? getListData(selectedDate) : [];
-
-  // --------------------- MODAL "ADICIONAR EVENTO" ---------------------
-  const showAddModal = () => {
-    setIsAddModalVisible(true);
-  };
-
-  const handleAddCancel = () => {
-    setIsAddModalVisible(false);
-    formAdd.resetFields();
-  };
-
-  // Lógica de adicionar evento (simples ou recorrente)
-  const handleAddFinish = (values: any) => {
-    const date: Dayjs = values.date;
-    const startTime: Dayjs = values.startTime;
-    const endTime: Dayjs = values.endTime;
-
-    const newEvent: EventItem = {
-      type: values.type,
-      content: values.content,
-      startTime: startTime.format('HH:mm'),
-      endTime: endTime.format('HH:mm'),
-      classroom: values.classroom,
+  // Add
+  const handleAddFinish = async (values: any) => {
+    const payload = {
+      data: {
+        type: 'event',
+        attributes: {
+          event_date:   values.date.toISOString(),
+          start_time:   values.startTime.format('HH:mm:ss'),
+          end_time:     values.endTime.format('HH:mm:ss'),
+          url:          values.url,
+          description:  values.description,
+          is_recurring: values.recurrenceEnabled || false,
+          event_type:   values.type,
+          classroom_id: values.classroom_id ?? null,
+        },
+        relationships: {}
+      }
     };
-
-    const recurrenceEnabled = values.recurrenceEnabled;
-
-    if (recurrenceEnabled) {
-      const frequency = values.frequency; // "semanal", "quinzenal" ou "mensal"
-      const recurrenceEndDate: Dayjs = values.recurrenceEndDate;
-
-      // Percorre as datas de acordo com a frequência até a data final
-      setEvents((prev) => {
-        const updatedEvents = { ...prev };
-        let current = date.clone();
-
-        while (
-          current.isBefore(recurrenceEndDate) ||
-          current.isSame(recurrenceEndDate, 'day')
-        ) {
-          const dateKey = current.format('YYYY-MM-DD');
-          const prevEventsForDate = updatedEvents[dateKey] || [];
-
-          updatedEvents[dateKey] = [...prevEventsForDate, newEvent].sort(
-            (a, b) =>
-              dayjs(a.startTime, 'HH:mm').diff(dayjs(b.startTime, 'HH:mm'))
-          );
-
-          if (frequency === 'semanal') {
-            current = current.add(7, 'day');
-          } else if (frequency === 'quinzenal') {
-            current = current.add(15, 'day');
-          } else if (frequency === 'mensal') {
-            current = current.add(1, 'month');
-          } else {
-            break;
-          }
-        }
-        return updatedEvents;
-      });
-    } else {
-      // Sem recorrência: adiciona o evento apenas na data escolhida
-      setEvents((prev) => {
-        const dateKey = date.format('YYYY-MM-DD');
-        const prevEventsForDate = prev[dateKey] || [];
-        const newEvents = [...prevEventsForDate, newEvent].sort((a, b) =>
-          dayjs(a.startTime, 'HH:mm').diff(dayjs(b.startTime, 'HH:mm'))
-        );
-        return { ...prev, [dateKey]: newEvents };
-      });
+    try {
+      await createEvent(payload);
+      const updated = await getEvents();
+      setEvents(groupByDate(updated, classrooms));
+      setAddVisible(false);
+      formAdd.resetFields();
+      message.success('Evento criado com sucesso.');
+    } catch (err) {
+      message.error('Falha ao criar evento.');
+      console.error(err);
     }
-
-    setIsAddModalVisible(false);
-    formAdd.resetFields();
   };
 
-  // --------------------- MODAL "EDITAR EVENTO" ---------------------
-  const openEditModal = (eventData: EventItem, index: number, dateKey: string) => {
-    setEditingEvent({ originalDate: dateKey, index, data: eventData });
+  // Edit
+  const openEditModal = (item: EventItem) => {
+    setEditingEvent({ id: item.id, originalDate: item.id, data: item });
     formEdit.setFieldsValue({
-      date: dayjs(dateKey, 'YYYY-MM-DD'),
-      startTime: dayjs(eventData.startTime, 'HH:mm'),
-      endTime: dayjs(eventData.endTime, 'HH:mm'),
-      type: eventData.type,
-      content: eventData.content,
-      classroom: eventData.classroom,
+      date:              dayjs(item.id.slice(0, 10)),
+      startTime:         dayjs(item.startTime, 'HH:mm:ss'),
+      endTime:           dayjs(item.endTime, 'HH:mm:ss'),
+      type:              item.type,
+      description:       item.content,
+      url:               item.url,
+      classroom_id:      item.classroom_id,
+      recurrenceEnabled: item.is_recurring,
     });
+    setEditVisible(true);
   };
 
-  const handleEditCancel = () => {
-    setEditingEvent(null);
-    formEdit.resetFields();
-  };
-
-  const handleEditFinish = (values: any) => {
+  const handleEditFinish = async (values: any) => {
     if (!editingEvent) return;
-
-    const newDate: Dayjs = values.date;
-    const newDateKey = newDate.format('YYYY-MM-DD');
-
-    const updatedEvent: EventItem = {
-      type: values.type,
-      content: values.content,
-      startTime: values.startTime.format('HH:mm'),
-      endTime: values.endTime.format('HH:mm'),
-      classroom: values.classroom,
+    const payload = {
+      data: {
+        type: 'event',
+        attributes: {
+          event_date:   values.date.toISOString(),
+          start_time:   values.startTime.format('HH:mm:ss'),
+          end_time:     values.endTime.format('HH:mm:ss'),
+          url:          values.url,
+          description:  values.description,
+          is_recurring: values.recurrenceEnabled || false,
+          event_type:   values.type,
+          classroom_id: values.classroom_id ?? null,
+        },
+        relationships: {}
+      }
     };
+    try {
+      await updateEvent(editingEvent.id, payload);
+      const updated = await getEvents();
+      setEvents(groupByDate(updated, classrooms));
+      setEditVisible(false);
+      setEditingEvent(null);
+      formEdit.resetFields();
+      message.success('Evento atualizado.');
+    } catch (err) {
+      message.error('Falha ao atualizar evento.');
+      console.error(err);
+    }
+  };
 
-    setEvents((prev) => {
-      const updatedEvents = { ...prev };
-
-      // Remove o evento da data original
-      const originalEvents = updatedEvents[editingEvent.originalDate] || [];
-      originalEvents.splice(editingEvent.index, 1);
-      updatedEvents[editingEvent.originalDate] = originalEvents;
-
-      // Adiciona o evento atualizado na nova data
-      const targetEvents = updatedEvents[newDateKey] || [];
-      const newEventList = [...targetEvents, updatedEvent].sort((a, b) =>
-        dayjs(a.startTime, 'HH:mm').diff(dayjs(b.startTime, 'HH:mm'))
-      );
-      updatedEvents[newDateKey] = newEventList;
-
-      return updatedEvents;
+  // Delete
+  const handleDelete = async (id: string) => {
+    Modal.confirm({
+      title: 'Confirmar exclusão?',
+      onOk: async () => {
+        try {
+          await deleteEvent(id);
+          const updated = await getEvents();
+          setEvents(groupByDate(updated, classrooms));
+          message.success('Evento excluído.');
+        } catch {
+          message.error('Falha ao excluir.');
+        }
+      }
     });
-
-    setEditingEvent(null);
-    formEdit.resetFields();
   };
 
   return (
-    <div style={{ margin: '20px' }}>
-      <div
-        style={{
-          background: '#F9FAFB',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-        }}
-      >
-        {/* Cabeçalho com título e botão "Adicionar Evento" */}
-        <div
-          style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            marginBottom: '16px',
-          }}
-        >
-          <h5 style={{ fontWeight: 'bold', fontSize: '1.25rem', margin: 0 }}>
-            Calendário
-          </h5>
-          <Button type="primary" onClick={showAddModal}>
+    <div style={{ margin: 20 }}>
+      <div style={{
+        background: '#F9FAFB',
+        padding: 20,
+        borderRadius: 8,
+        boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+      }}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: 16
+        }}>
+          <h5 style={{ fontWeight: 'bold', fontSize: '1.25rem', margin: 0 }}>Calendário</h5>
+          <Button type="primary" onClick={() => setAddVisible(true)}>
             Adicionar Evento
           </Button>
         </div>
-
-        {/* Calendar com controle de modo e de seleção de data */}
         <Calendar
           cellRender={dateCellRender}
           onPanelChange={onPanelChange}
@@ -268,28 +241,28 @@ const CalendarPage: React.FC = () => {
         />
       </div>
 
-      {/* Modal "Adicionar Evento" */}
       <AddEventModal
-        visible={isAddModalVisible}
+        visible={isAddVisible}
         form={formAdd}
-        onCancel={handleAddCancel}
+        classrooms={classrooms}
+        onCancel={() => setAddVisible(false)}
         onFinish={handleAddFinish}
       />
 
-      {/* Modal "Eventos do dia" */}
       <DayEventsModal
-        visible={isDayModalVisible}
-        events={eventsForSelectedDay}
+        visible={isDayVisible}
+        events={selectedDate ? getListData(selectedDate) : []}
         selectedDate={selectedDate}
-        onClose={handleDayModalCancel}
+        onClose={() => setDayVisible(false)}
         onEditEvent={openEditModal}
+        onDeleteEvent={handleDelete}
       />
 
-      {/* Modal "Editar Evento" */}
       <EditEventModal
-        visible={!!editingEvent}
+        visible={isEditVisible}
         form={formEdit}
-        onCancel={handleEditCancel}
+        classrooms={classrooms}
+        onCancel={() => setEditVisible(false)}
         onFinish={handleEditFinish}
       />
     </div>

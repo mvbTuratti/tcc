@@ -4,8 +4,9 @@
     "**/.server/**/*",
     "**/.client/**/*",
     ".react-router/types/**/*"
-  ],
+, "app/services/.ts"  ],
   "compilerOptions": {
+    "allowSyntheticDefaultImports": true,
     "lib": ["DOM", "DOM.Iterable", "ES2022"],
     "types": ["node", "vite/client"],
     "target": "ES2022",

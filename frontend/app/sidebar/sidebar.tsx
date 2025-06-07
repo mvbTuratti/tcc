@@ -1,6 +1,6 @@
 // src/sidebar/SideBar.tsx
-import React, { useState } from 'react';
-import { Menu } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Menu, Avatar, Button, message} from 'antd';
 import {
   AppstoreOutlined,
   HomeOutlined,
@@ -8,21 +8,37 @@ import {
   CalendarOutlined,
   PlusCircleOutlined,
   UnorderedListOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import CreateClassroomModal from '../components/CreateClassroomModal';
 import ParticipatingClassroomsModal from '../components/ParticipatingClassroomsModal';
-import { useOwnedClassrooms, useEnrolledClassrooms } from '../services/classroomQueries';
+import { useOwnedClassrooms, useEnrolledClassrooms, createClassroom } from '../services/classroomQueries';
+import { fetchCurrentUser, logout } from '../services/userService';
 
 const SideBar: React.FC = () => {
   const navigate = useNavigate();
   const [openKeys, setOpenKeys] = useState<string[]>(['2', '23']);
   const [isCreateModalVisible, setIsCreateModalVisible] = useState(false);
   const [isParticipatingModalVisible, setIsParticipatingModalVisible] = useState(false);
+  const [user, setUser] = useState<{ name: string; picture: string } | null>(null);
 
-  const { data: professorRooms = [] } = useOwnedClassrooms();
-  const { data: studentRooms = [] } = useEnrolledClassrooms();
+  const {
+    data: professorRooms = [],
+    isLoading: loadingProf,
+    refetch: refetchOwnedClassrooms,
+  } = useOwnedClassrooms();
+
+  const {
+    data: studentRooms = [],
+    isLoading: loadingStudent,
+    refetch: refetchEnrolledClassrooms,
+  } = useEnrolledClassrooms();
+
+  useEffect(() => {
+    fetchCurrentUser().then(setUser).catch(() => setUser(null));
+  }, []);
 
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key.startsWith('23-')) {
@@ -60,6 +76,17 @@ const SideBar: React.FC = () => {
       label: room.name,
     }));
   };
+
+    const handleCreateClassroom = async (data: { name: string; description?: string }) => {
+      try {
+        await createClassroom(data.name, data.description);
+        message.success('Sala criada com sucesso');
+        refetchOwnedClassrooms();
+        refetchEnrolledClassrooms();
+      } catch (error) {
+        message.error('Erro ao criar sala');
+      }
+    };
 
   const items: MenuProps['items'] = [
     {
@@ -113,22 +140,46 @@ const SideBar: React.FC = () => {
         openKeys={openKeys}
         onOpenChange={setOpenKeys}
         onClick={handleMenuClick}
-        style={{ width: '100%', height: '100%' }}
+        style={{ width: '100%' }}
         items={items}
       />
 
-      <CreateClassroomModal
-        visible={isCreateModalVisible}
-        onClose={() => setIsCreateModalVisible(false)}
-        onCreate={(data) => console.log('Sala criada pelo Sidebar:', data)}
-      />
-
-      <ParticipatingClassroomsModal
-        visible={isParticipatingModalVisible}
-        onClose={() => setIsParticipatingModalVisible(false)}
-        professorRooms={professorRooms}
-        studentRooms={studentRooms}
-      />
+      <div className="p-4 text-center border-t border-gray-200">
+        {user && (
+          <>
+            <Avatar
+              size={48}
+              src={user.picture || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'}
+              style={{ marginBottom: 8 }}
+            />
+            <div style={{ fontSize: 12, wordBreak: 'break-word' }}>{user.name}</div>
+            <Button
+              type="text"
+              size="small"
+              icon={<LogoutOutlined />}
+              onClick={logout}
+              style={{ marginTop: 8 }}
+            >
+              Logout
+            </Button>
+          </>
+        )}
+      </div>
+        <CreateClassroomModal
+          visible={isCreateModalVisible}
+          onClose={() => setIsCreateModalVisible(false)}
+          onCreate={handleCreateClassroom}
+        />
+        <ParticipatingClassroomsModal
+          visible={isParticipatingModalVisible}
+          onClose={() => setIsParticipatingModalVisible(false)}
+          professorRooms={professorRooms}
+          studentRooms={studentRooms}
+          onRefetch={() => {
+            refetchOwnedClassrooms();
+            refetchEnrolledClassrooms();
+          }}
+        />
     </div>
   );
 };
