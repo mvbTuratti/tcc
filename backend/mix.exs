@@ -69,7 +69,8 @@ defmodule Backend.MixProject do
       {:open_api_spex, "~> 3.21"},
       {:redoc_ui_plug, "~> 0.2.1"},
       {:ash_authentication, "~> 4.0"},
-      {:simple_sat, "~> 0.1"}
+      {:simple_sat, "~> 0.1"},
+      {:crc, "~> 0.10.5"}
     ]
   end
 

@@ -27,7 +27,7 @@ end
     defaults [:destroy]
     read :read do
       primary?(true)
-      prepare build(sort: {:inserted_at, :desc}, load: [:responses_count])
+      prepare build(sort: {:inserted_at, :desc})
       pagination keyset?: true, offset?: true, required?: false, countable: true
     end
     read :by_id do
@@ -75,9 +75,7 @@ end
     belongs_to :author, Backend.Accounts.User, public?: true
     has_many :responses, Backend.Class.Response, destination_attribute: :post_id, public?: true
   end
-  aggregates do
-    count :responses_count, :responses, public?: true
-  end
+
   policies do
     policy action_type(:update) do
       authorize_if expr(author_id == ^actor(:id))
