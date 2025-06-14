@@ -10,9 +10,11 @@ import {
   Tabs,
   message,
 } from 'antd';
+import dayjs from 'dayjs';
 import CreateClassroomModal from '../components/CreateClassroomModal';
 import ParticipatingClassroomsModal from '../components/ParticipatingClassroomsModal';
 import { useOwnedClassrooms, useEnrolledClassrooms, createClassroom } from '../services/classroomQueries';
+import { useEvents } from  '../services/eventQueries'
 
 const { TabPane } = Tabs;
 
@@ -28,18 +30,6 @@ interface ClassroomSummary {
 }
 
 const Home: React.FC = () => {
-  const stats = [
-    { title: 'Total de Eventos', value: 42 },
-    { title: 'Eventos Hoje', value: 5 },
-    { title: 'Salas de Aula', value: 3 },
-  ];
-
-  const upcoming: UpcomingEvent[] = [
-    { time: '09:00', title: 'Reunião de equipe' },
-    { time: '14:30', title: 'Aula de React' },
-    { time: '17:00', title: 'Revisão de código' },
-  ];
-
   const {
     data: professorRooms = [],
     isLoading: loadingProf,
@@ -52,8 +42,33 @@ const Home: React.FC = () => {
     refetch: refetchEnrolledClassrooms,
   } = useEnrolledClassrooms();
 
+  const {
+    data: allEvents = [],
+    isLoading: loadingEvents,
+  } = useEvents();
+
   const [isCreateModalVisible, setIsCreateModalVisible] = React.useState(false);
   const [isParticipatingModalVisible, setIsParticipatingModalVisible] = React.useState(false);
+
+  const today = dayjs().format('YYYY-MM-DD');
+
+  const stats = [
+    { title: 'Total de Eventos', value: allEvents.length },
+    {
+      title: 'Eventos Hoje',
+      value: allEvents.filter((e) => e.attributes.event_date.startsWith(today)).length,
+    },
+    { title: 'Salas de Aula', value: professorRooms.length + studentRooms.length },
+  ];
+
+  const upcoming: UpcomingEvent[] = allEvents
+    .filter((e) => dayjs(e.attributes.event_date).isAfter(dayjs()) || dayjs(e.attributes.event_date).isSame(dayjs(), 'day'))
+    .sort((a, b) => dayjs(a.attributes.event_date).valueOf() - dayjs(b.attributes.event_date).valueOf())
+    .slice(0, 3)
+    .map((event) => ({
+      time: event.attributes.start_time.substring(0, 5),
+      title: event.attributes.description || 'Evento',
+    }));
 
   const handleCreateClassroom = async (data: { name: string; description?: string }) => {
     try {
@@ -92,7 +107,7 @@ const Home: React.FC = () => {
           {stats.map((s) => (
             <Col xs={24} sm={12} md={8} key={s.title}>
               <Card>
-                <Statistic title={s.title} value={s.value} />
+                <Statistic title={s.title} value={s.value} loading={loadingEvents && s.title.includes('Evento')} />
               </Card>
             </Col>
           ))}

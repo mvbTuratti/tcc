@@ -45,7 +45,7 @@ defmodule Backend.Class do
         # get(:read)
         # index :read
         post(:create)
-        patch(:update)
+        patch(:update, query_params: [:version])
         delete(:destroy)
       end
 

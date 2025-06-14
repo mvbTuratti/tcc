@@ -34,6 +34,7 @@ defmodule Backend.Class.Checks.IsEnrolledOrOwner do
     |> Ash.Query.filter(user_id: actor_id)
     |> Ash.read_one()
     |> case do
+      {:ok, nil} -> nil
       {:ok, student} -> student.id
       _ -> nil
     end

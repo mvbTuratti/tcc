@@ -1,11 +1,31 @@
 import React, { useEffect, useState } from 'react'
 import ReactQuill from 'react-quill'
-import { Modal } from 'antd'
 import 'react-quill/dist/quill.snow.css'
 import { useParams } from 'react-router-dom'
-import { Form, Button, List, Card, message, Input } from 'antd'
-import type { Post, ClassDate } from './types'
-import { getPostsByClassroom, createPost, updatePost, deletePost } from '../../services/postService'
+import {
+  Avatar,
+  Button,
+  Form,
+  Input,
+  List,
+  Modal,
+  message,
+  Card
+} from 'antd'
+import { CommentOutlined } from '@ant-design/icons'
+import {
+  getPostsWithRelations,
+  getPostWithResponses,
+  createPost,
+  updatePost,
+  deletePost,
+  createResponse
+} from '../../services/postService'
+import type {
+  PostItem,
+  PostWithResponses,
+  ResponseItem
+} from '../../services/postService'
 
 const quillModules = {
   toolbar: [
@@ -15,201 +35,386 @@ const quillModules = {
     ['clean']
   ]
 }
+const quillFormats = ['bold', 'italic', 'underline', 'strike', 'color', 'link']
 
-const quillFormats = [
-  'bold', 'italic', 'underline', 'strike',
-  'color',
-  'link'
-]
+// --- INÍCIO DOS NOVOS OBJETOS DE ESTILO ---
 
-const handlePostClick = (e: React.MouseEvent<HTMLDivElement>) => {
-  const anchor = (e.target as HTMLElement).closest('a')
-  if (!anchor) return
-
-  let href = anchor.getAttribute('href')!
-  if (!href.startsWith('http')) href = 'https://' + href
-
-  const isExternal =
-    /^https?:\/\//.test(href) &&
-    !href.includes(window.location.host)
-
-  if (isExternal) {
-    e.preventDefault()
-    Modal.confirm({
-      title: 'Você está saindo do ambiente',
-      content: 'Será aberto um site externo. Deseja continuar?',
-      onOk: () => window.open(href, '_blank'),
-    })
-  }
+const pageStyle: React.CSSProperties = {
+  display: 'flex',
+  gap: 24,
+  width: '100%',
+  margin: '0 auto'
 }
 
-interface ClassroomPostsProps {
-  scheduledClasses: ClassDate[]
+const feedColumnStyle: React.CSSProperties = {
+  flex: 2,
+  display: 'flex',
+  flexDirection: 'column',
+  minWidth: '300px'
 }
 
-function formatDate(dateStr: string): string {
-  const [year, month, day] = dateStr.split('-')
-  return `${day}/${month}/${year}`
+const createPostCardStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  borderRadius: '8px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  padding: '16px',
+  marginBottom: '24px'
 }
 
-const ClassroomPosts: React.FC<ClassroomPostsProps> = ({ scheduledClasses }) => {
-  const { id: classroomId } = useParams()
+const scrollableFeedStyle: React.CSSProperties = {
+  flex: 1,
+  overflowY: 'auto',
+  paddingRight: '8px',
+  maxHeight: 'calc(100vh - 465px)' // Ajuste dinâmico da altura
+}
+
+const postCardStyle: React.CSSProperties = {
+  backgroundColor: '#ffffff',
+  borderRadius: '8px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  padding: '16px',
+  marginBottom: '16px' // Espaçamento entre os posts
+}
+
+const postHeaderStyle: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  marginBottom: '12px'
+}
+
+const avatarStyle: React.CSSProperties = {
+  width: '40px',
+  height: '40px',
+  marginRight: '12px'
+}
+
+const authorInfoStyle: React.CSSProperties = {
+  display: 'flex',
+  flexDirection: 'column'
+}
+
+const authorNameStyle: React.CSSProperties = {
+  fontWeight: 600,
+  color: '#050505'
+}
+
+const timestampStyle: React.CSSProperties = {
+  fontSize: '0.8rem',
+  color: '#65676b'
+}
+
+const postContentStyle: React.CSSProperties = {
+  lineHeight: 1.5,
+  whiteSpace: 'pre-wrap',
+  wordWrap: 'break-word',
+  marginTop: '8px'
+}
+
+const sidebarStyle: React.CSSProperties = {
+  flex: 1,
+  minWidth: '280px'
+}
+
+const nextClassesCardStyle: React.CSSProperties = {
+  marginBottom: 16,
+  borderRadius: '8px',
+  boxShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  position: 'sticky',
+  top: '20px'
+}
+
+const googleButtonStyle: React.CSSProperties = {
+  backgroundColor: '#4285F4',
+  color: 'white',
+  fontWeight: 500,
+  border: 'none',
+  borderRadius: '4px',
+  height: '40px'
+}
+
+// --- FIM DOS NOVOS OBJETOS DE ESTILO ---
+
+export default function ClassroomPosts({
+  scheduledClasses,
+  onExternalLink
+}: {
+  scheduledClasses: { date: string; startHour: string; finalHour: string }[]
+  onExternalLink: (href: string) => void
+}) {
+  const { id: classroomId } = useParams<{ id: string }>()
   const [form] = Form.useForm()
-  const [posts, setPosts] = useState<Post[]>([])
-  const [editingPostId, setEditingPostId] = useState<string | null>(null)
+  const [respForm] = Form.useForm()
+  const [posts, setPosts] = useState<PostItem[]>([])
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [editingText, setEditingText] = useState('')
+  const [discussion, setDiscussion] = useState<PostWithResponses | null>(null)
+  const [discVisible, setDiscVisible] = useState(false)
 
   useEffect(() => {
     if (!classroomId) return
-    getPostsByClassroom(classroomId)
+    getPostsWithRelations(classroomId)
       .then(setPosts)
       .catch(() => message.error('Erro ao carregar posts'))
   }, [classroomId])
 
-  const onFinish = async (values: { postText: string }) => {
+  const onAdd = async ({ postText }: { postText: string }) => {
     if (!classroomId) return
     try {
-      const newPost = await createPost(values.postText, classroomId)
-      setPosts(prev => [newPost, ...prev])
+      const p = await createPost(postText, classroomId)
+      setPosts(pr => [p, ...pr])
       form.resetFields()
     } catch {
       message.error('Erro ao criar post')
     }
   }
 
-  const handleSaveEdit = async (id: string, newText: string) => {
+  const onSaveEdit = async (id: string) => {
     try {
-      await updatePost(id, newText)
-      setPosts(prev =>
-        prev.map(p => (p.id === id ? { ...p, text: newText } : p))
+      await updatePost(id, editingText)
+      setPosts(pr =>
+        pr.map(p => (p.id === id ? { ...p, text: editingText } : p))
       )
-      setEditingPostId(null)
+      setEditingId(null)
       setEditingText('')
     } catch {
       message.error('Erro ao atualizar post')
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const onDelete = async (id: string) => {
     try {
       await deletePost(id)
-      setPosts(prev => prev.filter(p => p.id !== id))
+      setPosts(pr => pr.filter(p => p.id !== id))
     } catch {
       message.error('Erro ao excluir post')
     }
   }
 
-  return (
-    <div style={{ display: 'flex', gap: 20 }}>
-      <div style={{ flex: 2 }}>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item
-            name="postText"
-            rules={[{ required: true, message: 'Escreva algo antes de postar!' }]}
-          >
-            <ReactQuill
-              theme="snow"
-              modules={quillModules}
-              formats={quillFormats}
-              placeholder="Digite seu post..."
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit">
-              Postar
-            </Button>
-          </Form.Item>
-        </Form>
+  const openDiscussion = async (postId: string) => {
+    try {
+      const d = await getPostWithResponses(postId)
+      setDiscussion(d)
+      setDiscVisible(true)
+    } catch {
+      message.error('Erro ao carregar discussão')
+    }
+  }
 
-        <List
-          itemLayout="vertical"
-          dataSource={posts}
-          renderItem={post => (
-            <List.Item
-              key={post.id}
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-                background: '#f0f0f0',
-                padding: 10,
-                borderRadius: 4,
-                marginBottom: 10
-              }}
-              actions={[
-                editingPostId === post.id
-                  ? <>
-                      <Button type="link" onClick={() => handleSaveEdit(post.id, editingText)}>
-                        Salvar
-                      </Button>
-                      <Button type="link" onClick={() => { setEditingPostId(null); setEditingText('') }}>
-                        Cancelar
-                      </Button>
-                    </>
-                  : <>
-                      <Button type="link" onClick={() => { setEditingPostId(post.id); setEditingText(post.text) }}>
-                        Editar
-                      </Button>
-                      <Button type="link" danger onClick={() => handleDelete(post.id)}>
-                        Excluir
-                      </Button>
-                    </>
-              ]}
-            >
-              <div style={{ flex: 1 }}>
-              {editingPostId === post.id ? (
+  const onSubmitResponse = async ({ respText }: { respText: string }) => {
+    if (!discussion) return
+    try {
+      await createResponse(discussion.id, respText)
+      const d = await getPostWithResponses(discussion.id)
+      setDiscussion(d)
+      respForm.resetFields()
+    } catch {
+      message.error('Erro ao enviar resposta')
+    }
+  }
+
+  return (
+    <>
+      <div style={pageStyle}>
+        {/* Coluna de posts */}
+        <div style={feedColumnStyle}>
+          {/* Card de criação de post */}
+          <div style={createPostCardStyle}>
+            <Form form={form} layout="vertical" onFinish={onAdd}>
+              <Form.Item
+                name="postText"
+                rules={[{ required: true, message: 'Escreva algo antes!' }]}
+              >
                 <ReactQuill
                   theme="snow"
                   modules={quillModules}
                   formats={quillFormats}
-                  value={editingText}
-                  onChange={setEditingText}
+                  placeholder="Digite seu post..."
                 />
-              ) : (
-              <div
-                dangerouslySetInnerHTML={{ __html: post.text }}
-                onClick={handlePostClick}
-              />
-              )}
-              </div>
-            </List.Item>
-          )}
-        />
-      </div>
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Postar
+                </Button>
+              </Form.Item>
+            </Form>
+          </div>
 
-      <div style={{ flex: 1 }}>
-        <Card
-          style={{ background: '#ffe6f2', borderRadius: 8, padding: 10, marginBottom: 20 }}
-          bodyStyle={{ padding: 0 }}
-        >
-          <div style={{ padding: 10 }}>
-            <h4>Próximas Aulas</h4>
+          {/* Feed de posts com scroll */}
+          <div style={scrollableFeedStyle}>
             <List
-              dataSource={scheduledClasses}
-              renderItem={item => (
-                <List.Item style={{ padding: '4px 0' }}>
-                  {`${formatDate(item.date)} ${item.startHour} - ${item.finalHour}`}
+              itemLayout="vertical"
+              dataSource={posts}
+              renderItem={post => (
+                // O List.Item agora funciona como nosso post-card
+                <List.Item
+                  style={postCardStyle}
+                  key={post.id}
+                  actions={[
+                    editingId === post.id ? (
+                      <>
+                        <Button type="link" onClick={() => onSaveEdit(post.id)}>
+                          Salvar
+                        </Button>
+                        <Button
+                          type="link"
+                          onClick={() => {
+                            setEditingId(null)
+                            setEditingText('')
+                          }}
+                        >
+                          Cancelar
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          type="link"
+                          onClick={() => {
+                            setEditingId(post.id)
+                            setEditingText(post.text)
+                          }}
+                        >
+                          Editar
+                        </Button>
+                        <Button
+                          type="link"
+                          danger
+                          onClick={() => onDelete(post.id)}
+                        >
+                          Excluir
+                        </Button>
+                      </>
+                    ),
+                    <Button
+                      key="comment"
+                      type="link"
+                      icon={<CommentOutlined />}
+                      onClick={() => openDiscussion(post.id)}
+                    >
+                      {post.responseCount}
+                    </Button>
+                  ]}
+                >
+                  {/* Removido o List.Item.Meta para usar um header customizado */}
+                  <div style={postHeaderStyle}>
+                    <Avatar src={post.author.picture} style={avatarStyle} />
+                    <div style={authorInfoStyle}>
+                      <span style={authorNameStyle}>{post.author.name}</span>
+                      <span style={timestampStyle}>{`Atualizado em ${new Date(
+                        post.updatedAt
+                      ).toLocaleString()}`}</span>
+                    </div>
+                  </div>
+
+                  {editingId === post.id ? (
+                    <ReactQuill
+                      theme="snow"
+                      modules={quillModules}
+                      formats={quillFormats}
+                      value={editingText}
+                      onChange={setEditingText}
+                    />
+                  ) : (
+                    <div
+                      style={postContentStyle}
+                      dangerouslySetInnerHTML={{ __html: post.text }}
+                    />
+                  )}
                 </List.Item>
               )}
             />
           </div>
-        </Card>
-        <Button
-          type="primary"
-          style={{ width: '100%' }}
-          onClick={() => {
-            Modal.confirm({
-              title: 'Você está saindo do ambiente',
-              content: 'Será aberto a aula em nova aba. Deseja continuar?',
-              onOk: () => window.open('https://google.com.br', '_blank'),
-            })
-          }}
-        >
-          Assistir Aula
-        </Button>
+        </div>
+
+        {/* Coluna de próximas aulas e botão externo */}
+        <div style={sidebarStyle}>
+          <Card
+            size="small"
+            title="Próximas Aulas"
+            style={nextClassesCardStyle}
+          >
+            <List
+              size="small"
+              dataSource={scheduledClasses}
+              renderItem={c => (
+                <List.Item>
+                  {`${new Date(c.date).toLocaleDateString()} ${c.startHour}–${
+                    c.finalHour
+                  }`}
+                </List.Item>
+              )}
+            />
+          </Card>
+          <Button
+            type="primary"
+            block
+            style={googleButtonStyle}
+            onClick={() => onExternalLink('https://google.com.br')}
+          >
+            Ir para Google
+          </Button>
+        </div>
       </div>
-    </div>
+
+      <Modal
+        title="Discussão"
+        visible={discVisible}
+        onCancel={() => setDiscVisible(false)}
+        footer={null}
+        width={800}
+      >
+        {discussion && (
+          <>
+            <List.Item.Meta
+              avatar={<Avatar src={discussion.author.picture} />}
+              title={discussion.author.name}
+              description={`Atualizado em ${new Date(
+                discussion.updatedAt
+              ).toLocaleString()}`}
+            />
+            <div
+              style={{ margin: '16px 0' }}
+              dangerouslySetInnerHTML={{ __html: discussion.text }}
+            />
+            <div style={{ maxHeight: '40vh', overflowY: 'auto' }}>
+              <List
+                header={`${discussion.responses.length} respostas`}
+                dataSource={discussion.responses}
+                renderItem={r => (
+                  <List.Item key={r.id}>
+                    <List.Item.Meta
+                      avatar={<Avatar src={r.author.picture} />}
+                      title={r.author.name}
+                      description={`Atualizado em ${new Date(
+                        r.updatedAt
+                      ).toLocaleString()}`}
+                    />
+                    <div dangerouslySetInnerHTML={{ __html: r.text }} />
+                  </List.Item>
+                )}
+              />
+            </div>
+            <Form
+              form={respForm}
+              layout="vertical"
+              onFinish={onSubmitResponse}
+              style={{ marginTop: 16 }}
+            >
+              <Form.Item
+                name="respText"
+                rules={[{ required: true, message: 'Digite sua resposta!' }]}
+              >
+                <Input.TextArea rows={3} placeholder="Sua resposta..." />
+              </Form.Item>
+              <Form.Item>
+                <Button type="primary" htmlType="submit">
+                  Enviar resposta
+                </Button>
+              </Form.Item>
+            </Form>
+          </>
+        )}
+      </Modal>
+    </>
   )
 }
-
-export default ClassroomPosts

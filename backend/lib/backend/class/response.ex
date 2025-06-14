@@ -41,6 +41,7 @@ defmodule Backend.Class.Response do
     uuid_primary_key :id do
       public? true
     end
+    attribute :version, :integer, allow_nil?: false, default: 1
     attribute :content, :string do
       allow_nil? false
       public? true

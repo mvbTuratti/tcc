@@ -34,8 +34,13 @@ export interface APIEvent {
 const extractData = (res: any) => res.data.data;
 
 export const getEvents = async (): Promise<APIEvent[]> => {
-  const res = await api.get('/event');
-  return extractData(res);
+  try {
+    const res = await api.get('/event');
+    return extractData(res);
+  } catch (error) {
+    console.error('Erro em getEvents:', error);
+    throw error;
+  }
 };
 
 export const createEvent = async (payload: any): Promise<APIEvent> => {
