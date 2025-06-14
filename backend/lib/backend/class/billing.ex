@@ -15,6 +15,9 @@ defmodule Backend.Class.Billing do
       reference :classroom, on_delete: :delete
     end
   end
+  identities do
+    identity :one_by_classroom, [:classroom_id]
+  end
 
   json_api do
     type "billing"
@@ -22,6 +25,11 @@ defmodule Backend.Class.Billing do
 
   actions do
     defaults [:destroy]
+    read :read do
+      primary?(true)
+      prepare build(sort: {:inserted_at, :desc})
+      pagination keyset?: true, offset?: true, required?: false, countable: true
+    end
     read :by_id do
       argument :id, :uuid, allow_nil?: false
       get? true
@@ -29,31 +37,45 @@ defmodule Backend.Class.Billing do
     end
 
     create :create do
-      accept [:price, :method, :city, :method, :city, :name]
+      accept [:transaction_amount, :pix_key, :name, :city, :classroom_id]
+
+      change fn changeset, _context ->
+        params = %{
+          merchant_name: Ash.Changeset.get_attribute(changeset, :name),
+          merchant_city: Ash.Changeset.get_attribute(changeset, :city),
+          pix_key: Ash.Changeset.get_attribute(changeset, :pix_key),
+          transaction_amount: Ash.Changeset.get_attribute(changeset, :transaction_amount)
+        }
+        case Backend.Pix.PixGenerator.generate(params) do
+          {:ok, pix_string} ->
+            Ash.Changeset.force_change_attribute(changeset, :qr_code, pix_string)
+          {:error, reason} ->
+            Ash.Changeset.add_error(changeset,
+              field: :qr_code,
+              message: "Failed to generate PIX QR Code: #{reason}"
+            )
+        end
+      end
     end
 
     update :update do
-      accept [:price, :method, :city, :method, :city, :name]
+      accept [:transaction_amount, :pix_key, :name, :city]
     end
     changes do
-      change optimistic_lock(:version), on: [:create, :destroy,:update]
+      change optimistic_lock(:version), on: [:destroy,:update]
     end
   end
+
 
   attributes do
     uuid_primary_key :id do
       public? true
     end
     attribute :version, :integer, allow_nil?: false, default: 1
-    attribute :price, :string do
-      allow_nil? false
-      constraints max_length: 9,
-              allow_empty?: false
-      public? true
-    end
-    attribute :method, Backend.Types.PixType, allow_nil?: false, public?: true
-    attribute :city, :string, allow_nil?: false, public?: true
+    attribute :transaction_amount, :float, allow_nil?: true, public?: true
+    attribute :pix_key, :string, allow_nil?: false, public?: true
     attribute :name, :string, allow_nil?: false, public?: true
+    attribute :city, :string, allow_nil?: false, public?: true
     attribute :qr_code, :string, allow_nil?: true, public?: true
 
     create_timestamp :inserted_at
@@ -72,13 +94,23 @@ defmodule Backend.Class.Billing do
       authorize_if expr(exists(classroom, exists(classroom_owners, user_id == ^actor(:id))))
     end
     policy action_type(:create) do
-      authorize_if expr(exists(classroom, exists(classroom_owners, user_id == ^actor(:id))))
+      authorize_if Backend.Class.Checks.IsOwner
     end
     policy action_type(:read) do
       authorize_if expr(
         exists(classroom, exists(enrollments, exists(student, user_id == ^actor(:id)))) or
         exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
         )
+    end
+  end
+  field_policies do
+    field_policy [:transaction_amount, :pix_key, :name, :city] do
+      authorize_if expr(
+          exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
+      )
+    end
+    field_policy :* do
+      authorize_if always()
     end
   end
 end
