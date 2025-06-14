@@ -111,19 +111,19 @@ defmodule Backend.Pix.PixGenerator do
   end
 
   defp calculate_crc16(data_string) do
-    # These parameters define the CRC-16/CCITT-FALSE algorithm required by the PIX standard.
-    crc_model = %{
-      width: 16,
-      poly: 0x1021,
-      init: 0xFFFF,
-      refin: false,
-      refout: false,
-      xorout: 0x0000
-    }
+    # # These parameters define the CRC-16/CCITT-FALSE algorithm required by the PIX standard.
+    # crc_model = %{
+    #   width: 16,
+    #   poly: 0x1021,
+    #   init: 0xFFFF,
+    #   refin: false,
+    #   refout: false,
+    #   xorout: 0x0000
+    # }
 
-    crc_value_int = CRC.crc(crc_model, data_string)
+    # crc_value_int = CRC.crc(crc_model, data_string)
 
-    crc_value_int
+    Backend.Utils.CRC16.ccitt_false(data_string)
     |> Integer.to_string(16)
     |> String.upcase()
     |> String.pad_leading(4, "0")
