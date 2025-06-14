@@ -36,6 +36,7 @@ defmodule Backend.Class do
       end
       base_route "/billing", Backend.Class.Billing do
         get :by_id
+        index :read
         post(:create, upsert?: true)
         patch(:update, query_params: [:version])
         delete(:destroy, query_params: [:version])
@@ -52,6 +53,7 @@ defmodule Backend.Class do
       base_route "/event", Backend.Class.Event do
         get(:read)
         index :read
+        index :read_month, route: "/month"
         post(:create)
         patch(:update, query_params: [:version])
         delete(:destroy, query_params: [:version])

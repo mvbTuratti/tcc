@@ -122,6 +122,7 @@ defmodule Backend.Accounts.User do
     has_many :responses, Backend.Class.Response, destination_attribute: :author_id
     has_many :classroom_owners, Backend.Class.ClassRoomOwner
     has_many :student, Backend.Class.Student, destination_attribute: :user_id
+    has_many :events, Backend.Class.Event, destination_attribute: :user_id
   end
 
 end

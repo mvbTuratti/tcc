@@ -60,6 +60,24 @@ defmodule Backend.Class.Billing do
 
     update :update do
       accept [:transaction_amount, :pix_key, :name, :city]
+      require_atomic? false
+      change fn changeset, _context ->
+        params = %{
+          merchant_name: Ash.Changeset.get_attribute(changeset, :name),
+          merchant_city: Ash.Changeset.get_attribute(changeset, :city),
+          pix_key: Ash.Changeset.get_attribute(changeset, :pix_key),
+          transaction_amount: Ash.Changeset.get_attribute(changeset, :transaction_amount)
+        }
+        case Backend.Pix.PixGenerator.generate(params) do
+          {:ok, pix_string} ->
+            Ash.Changeset.force_change_attribute(changeset, :qr_code, pix_string)
+          {:error, reason} ->
+            Ash.Changeset.add_error(changeset,
+              field: :qr_code,
+              message: "Failed to generate PIX QR Code: #{reason}"
+            )
+        end
+      end
     end
     changes do
       change optimistic_lock(:version), on: [:destroy,:update]
@@ -83,7 +101,7 @@ defmodule Backend.Class.Billing do
   end
 
   relationships do
-    belongs_to :classroom, Backend.Class.ClassRoom
+    belongs_to :classroom, Backend.Class.ClassRoom, public?: true
   end
 
   policies do
