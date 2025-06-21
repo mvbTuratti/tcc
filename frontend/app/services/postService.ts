@@ -62,7 +62,7 @@ export async function getPostsWithRelations(
   const users = parseUsers(json.included)
   return json.data.map((p: any) => {
     const attr = p.attributes
-    const authorId = p.relationships.author.data.id
+    const authorId = p.relationships?.author?.data?.id ?? p.attributes.author_id
     const respCount = p.relationships.responses.data.length
     return {
       id: p.id,
@@ -116,9 +116,9 @@ export async function createPost(
     body: JSON.stringify({
       data: {
         type: 'post',
-        attributes: { content },
-        relationships: {
-          classroom: { data: { id: classroomId, type: 'classroom' } }
+        attributes: {
+          content,
+          classroom_id: classroomId
         }
       }
     })

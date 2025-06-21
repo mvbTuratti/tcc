@@ -1,6 +1,6 @@
-// src/routes/classroom/[id].tsx
+// src/routes/classroom.$id.tsx
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useLocation } from 'react-router-dom';
 import { Card, Tabs, message } from 'antd';
 import type { Post, Student, ClassDate } from './classroom/types';
 import ClassroomPosts from './classroom/ClassroomPosts';
@@ -12,12 +12,12 @@ const { TabPane } = Tabs;
 
 const ClassroomById: React.FC = () => {
   const { id: classroomId } = useParams<{ id: string }>();
-
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [editingPostId, setEditingPostId] = useState<number | null>(null);
-  const [editingText, setEditingText] = useState('');
+  const location = useLocation();
+  const { role } = location.state as { role: 'teacher' | 'student' };
 
   const [students, setStudents] = useState<Student[]>([]);
+  const [isBlocked, setIsBlocked] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState('');
 
   const scheduledClasses: ClassDate[] = [
     { date: '2025-03-10', startHour: '15:30', finalHour: '18:00' },
@@ -29,22 +29,22 @@ const ClassroomById: React.FC = () => {
   ];
 
   useEffect(() => {
-    if (!classroomId) return; 
+    if (!classroomId) return;
+
+    // Mock: identificador simples por enquanto
+    const storedUser = localStorage.getItem('userId');
+    if (storedUser) setCurrentUserId(storedUser);
+
     getEnrollmentsByClassroom(classroomId)
-      .then((lista) => setStudents(lista))
+      .then((lista) => {
+        setStudents(lista);
+        const current = lista.find(s => s.userId === storedUser);
+        if (current?.isDelinquent) {
+          setIsBlocked(true);
+        }
+      })
       .catch(() => message.error('Erro ao carregar alunos'));
   }, [classroomId]);
-
-  // Handlers de posts (mantidos do seu código original)
-  const handlePostSubmit = (newPostText: string) => {
-    if (newPostText.trim()) {
-      const newPost: Post = { id: Date.now(), text: newPostText };
-      setPosts([newPost, ...posts]);
-    }
-  };
-  const handleSaveEdit = (id: number, newText: string) => {
-    setPosts(posts.map((post) => (post.id === id ? { ...post, text: newText } : post)));
-  };
 
   return (
     <div className="p-8 w-[88vw]">
@@ -63,17 +63,18 @@ const ClassroomById: React.FC = () => {
 
         <Tabs defaultActiveKey="posts">
           <Tabs.TabPane tab="Posts" key="posts">
-            <ClassroomPosts
-              posts={posts}
-              setPosts={setPosts}
-              editingPostId={editingPostId}
-              setEditingPostId={setEditingPostId}
-              editingText={editingText}
-              setEditingText={setEditingText}
-              handlePostSubmit={handlePostSubmit}
-              handleSaveEdit={handleSaveEdit}
-              scheduledClasses={scheduledClasses}
-            />
+            {role === 'student' && isBlocked ? (
+              <p style={{ color: 'red', fontWeight: 'bold' }}>
+                Sala bloqueada por pendência de pagamento. Contate o professor.
+              </p>
+            ) : (
+              <ClassroomPosts
+                role={role}
+                currentUserId={currentUserId}
+                scheduledClasses={scheduledClasses}
+                onExternalLink={(href) => window.open(href, '_blank')}
+              />
+            )}
           </Tabs.TabPane>
 
           <Tabs.TabPane tab="Alunos" key="alunos">
@@ -82,6 +83,7 @@ const ClassroomById: React.FC = () => {
                 students={students}
                 setStudents={setStudents}
                 classroomId={classroomId}
+                role={role}
               />
             ) : (
               <p>Carregando...</p>
@@ -89,7 +91,7 @@ const ClassroomById: React.FC = () => {
           </Tabs.TabPane>
 
           <Tabs.TabPane tab="Pagamentos" key="pagamentos">
-            <ClassroomPayments />
+            <ClassroomPayments role={role} isDelinquent={isBlocked} />
           </Tabs.TabPane>
         </Tabs>
       </Card>

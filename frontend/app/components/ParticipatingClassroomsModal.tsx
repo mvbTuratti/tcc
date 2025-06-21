@@ -4,6 +4,7 @@ import { Modal, Tabs, List, Button, message, Popconfirm, Row } from 'antd';
 import { ReloadOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ClassroomSummary } from '../routes/($lang).home';
+import ClassroomSummary from "../routes/($lang).home"
 import { deleteClassroomById } from '../services/classroomService';
 
 const { TabPane } = Tabs;
@@ -25,10 +26,10 @@ const ParticipatingClassroomsModal: React.FC<Props> = ({
 }) => {
   const navigate = useNavigate();
 
-  const handleNavigate = (id: string) => {
-    navigate(`/classroom/${id}`);
-    onClose();
-  };
+const handleNavigate = (id: string, role: 'teacher' | 'student') => {
+  navigate(`/classroom/${id}`, { state: { role } });
+  onClose();
+};
 
   const handleRemove = async (id: string, isProfessor: boolean) => {
     try {
@@ -67,7 +68,7 @@ const ParticipatingClassroomsModal: React.FC<Props> = ({
         </Popconfirm>,
       ]}
     >
-      <div onClick={() => handleNavigate(room.id)} style={{ flex: 1 }}>
+        <div onClick={() => handleNavigate(room.id, isProfessor ? 'teacher' : 'student')} style={{ flex: 1 }}>
         <List.Item.Meta title={room.name} description={room.instructor} />
       </div>
     </List.Item>

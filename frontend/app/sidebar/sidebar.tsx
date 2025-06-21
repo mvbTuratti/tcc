@@ -43,9 +43,12 @@ const SideBar: React.FC = () => {
   const handleMenuClick: MenuProps['onClick'] = ({ key }) => {
     if (key.startsWith('23-')) {
       const id = key.replace('23-', '');
-      if (id) {
-        navigate(`/classroom/${id}`);
-      }
+      if (id) navigate(`/classroom/${id}`, { state: { role: 'teacher' } });
+      return;
+    }
+    if (key.startsWith('24-')) {
+      const id = key.replace('24-', '');
+      if (id) navigate(`/classroom/${id}`, { state: { role: 'student' } });
       return;
     }
 

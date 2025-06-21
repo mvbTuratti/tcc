@@ -122,7 +122,7 @@ defmodule Backend.Class.Billing do
     end
   end
   field_policies do
-    field_policy [:transaction_amount, :pix_key, :name, :city] do
+    field_policy [:pix_key, :name, :city] do
       authorize_if expr(
           exists(classroom, exists(classroom_owners, user_id == ^actor(:id)))
       )

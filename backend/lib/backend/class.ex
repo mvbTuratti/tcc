@@ -35,6 +35,7 @@ defmodule Backend.Class do
         delete(:destroy)
       end
       base_route "/billing", Backend.Class.Billing do
+        index :read
         get :by_id
         index :read
         post(:create, upsert?: true)
