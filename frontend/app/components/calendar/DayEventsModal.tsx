@@ -1,52 +1,94 @@
-import React from 'react';
-import { Modal, Button, List } from 'antd';
-import type { Dayjs } from 'dayjs';
+// src/components/calendar/DayEventsModal.tsx
+import React from 'react'
+import { Modal, Button, List, Badge } from 'antd'
+import type { Dayjs } from 'dayjs'
 
-interface EventItem {
-  id:           string;
-  type:         string;
-  content:      string;
-  startTime:    string;
-  endTime:      string;
-  classroom?:   string;
+/** Mesma shape de CalendarEvent em calendar.tsx */
+interface CalendarEvent {
+  id: string
+  event_date: string
+  start_time: string
+  end_time: string
+  url: string
+  description: string
+  is_recurring: boolean
+  recurrence_type?: 'weekly' | 'monthly'
+  recurrence_days_of_week?: string[]
+  recurrence_weeks_of_month?: number[]
+  recurrence_ends_at?: string
+  event_type: string
+  classroom_id: string
+  classroom?: string
 }
 
 interface DayEventsModalProps {
-  visible:      boolean;
-  events:       EventItem[];
-  selectedDate: Dayjs | null;
-  onClose:      () => void;
-  onEditEvent:  (item: EventItem) => void;
-  onDeleteEvent: (id: string) => void;
+  visible: boolean
+  events: CalendarEvent[]
+  selectedDate: Dayjs | null
+  onClose: () => void
+  onEditEvent: (evt: CalendarEvent) => void
+  onDeleteEvent: (id: string) => void
 }
 
 const DayEventsModal: React.FC<DayEventsModalProps> = ({
-  visible, events, selectedDate, onClose, onEditEvent, onDeleteEvent
+  visible,
+  events,
+  selectedDate,
+  onClose,
+  onEditEvent,
+  onDeleteEvent
 }) => {
-  const dateKey = selectedDate?.format('YYYY-MM-DD') || '';
+  const title = selectedDate
+    ? selectedDate.format('DD/MM/YYYY')
+    : ''
 
   return (
     <Modal
-      title={`Eventos de ${selectedDate?.format('DD/MM/YYYY')}`}
+      title={`Eventos de ${title}`}
       visible={visible}
       onCancel={onClose}
       footer={[
-        <Button key="close" onClick={onClose}>Fechar</Button>,
+        <Button key="close" onClick={onClose}>
+          Fechar
+        </Button>
       ]}
     >
       {events.length > 0 ? (
         <List
           dataSource={events}
-          renderItem={item => (
+          renderItem={evt => (
             <List.Item
               actions={[
-                <Button type="link" onClick={() => onEditEvent(item)}>Editar</Button>,
-                <Button type="link" danger onClick={() => onDeleteEvent(item.id)}>Deletar</Button>
+                <Button
+                  key="edit"
+                  type="link"
+                  onClick={() => onEditEvent(evt)}
+                >
+                  Editar
+                </Button>,
+                <Button
+                  key="delete"
+                  type="link"
+                  danger
+                  onClick={() => onDeleteEvent(evt.id)}
+                >
+                  Excluir
+                </Button>
               ]}
             >
               <List.Item.Meta
-                title={`${item.startTime}–${item.endTime}`}
-                description={`${item.content} (${item.type})${item.classroom ? ` | ${item.classroom}` : ''}`}
+                title={`${evt.start_time}–${evt.end_time}`}
+                description={
+                  <>
+                    <span>{evt.description}</span>
+                    {' '}
+                    <Badge
+                      status={evt.event_type as any}
+                      text={evt.event_type}
+                    />
+                    {evt.classroom && <> | {evt.classroom}</>}
+                  </>
+                }
               />
             </List.Item>
           )}
@@ -55,7 +97,7 @@ const DayEventsModal: React.FC<DayEventsModalProps> = ({
         <p>Nenhum evento para este dia.</p>
       )}
     </Modal>
-  );
-};
+  )
+}
 
-export default DayEventsModal;
+export default DayEventsModal

@@ -113,7 +113,7 @@ const Home: React.FC = () => {
           ))}
         </Row>
 
-        <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
+        <Row gutter={[16, 16]} style={{ minHeight: '333px', marginTop: 24 }}>
           <Col xs={24} md={12}>
             <Card title="Próximos Eventos">
               <List
