@@ -13,7 +13,7 @@
     "@azure/msal-react": "^3.0.5",
     "@react-router/fs-routes": "^7.2.0",
     "@react-router/node": "^7.2.0",
-    "@react-router/serve": "^7.2.0",
+    "@react-router/serve": "^7.3.0",
     "@tanstack/react-query": "^5.79.0",
     "antd": "^5.24.2",
     "axios": "^1.9.0",
